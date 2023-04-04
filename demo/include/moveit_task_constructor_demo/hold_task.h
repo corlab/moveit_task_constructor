@@ -63,15 +63,11 @@
 namespace moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
-// prepare a demo environment from ROS parameters under pnh
-void setupDemoScene(ros::NodeHandle& pnh);
-void spawnPipe(ros::NodeHandle& pnh, const std::string& name);
-
-class PickPlaceTask
+class HoldTask
 {
 public:
-	PickPlaceTask(const std::string& task_name, const ros::NodeHandle& pnh);
-	~PickPlaceTask() = default;
+	HoldTask(const std::string& task_name, const std::string& place_name, const ros::NodeHandle& pnh);
+	~HoldTask() = default;
 
 	bool init();
 
@@ -80,9 +76,9 @@ public:
 	bool execute();
 
 private:
-	void loadParameters();
+	void loadParameters(const std::string& place_name);
 
-	static constexpr char LOGNAME[]{ "pick_place_task" };
+	static constexpr char LOGNAME[]{ "hold_task" };
 
 	ros::NodeHandle pnh_;
 

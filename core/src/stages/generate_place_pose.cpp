@@ -108,9 +108,10 @@ void GeneratePlacePose::compute() {
 
 	// spawn the nominal target object pose, considering flip about z and rotations about z-axis
 	auto spawner = [&s, &scene, &ik_frame, this](const Eigen::Isometry3d& nominal, uint z_flips, uint z_rotations = 10) {
+		ROS_DEBUG_STREAM_NAMED("place pose", "z_flips = " + z_flips);
 		for (uint flip = 0; flip <= z_flips; ++flip) {
 			// flip about object's x-axis
-			Eigen::Isometry3d object = nominal * Eigen::AngleAxisd(flip * M_PI, Eigen::Vector3d::UnitX());
+			Eigen::Isometry3d object = nominal * Eigen::AngleAxisd(flip * M_PI, Eigen::Vector3d::UnitY());
 			for (uint i = 0; i < z_rotations; ++i) {
 				// rotate object at target pose about world's z-axis
 				Eigen::Vector3d pos = object.translation();

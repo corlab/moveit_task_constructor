@@ -63,6 +63,7 @@ public:
 
 protected:
 	void onNewSolution(const SolutionBase& s) override;
+	void setPose(int current_angle, SubTrajectory& trajectory, geometry_msgs::PoseStamped& target_pose_msg);
 };
 }  // namespace stages
 }  // namespace task_constructor

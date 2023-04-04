@@ -302,8 +302,9 @@ bool MoveRelative::compute(const InterfaceState& state, planning_scene::Planning
 			}
 		} else if (min_distance == 0.0) {  // if min_distance is zero, we succeed in any case
 			success = true;
-		} else if (!success)
+		} else if (!success) {
 			solution.setComment("failed to move full distance");
+		}
 
 		// visualize plan
 		auto ns = props.get<std::string>("marker_ns");
@@ -320,8 +321,9 @@ bool MoveRelative::compute(const InterfaceState& state, planning_scene::Planning
 			robot_trajectory->reverse();
 		solution.setTrajectory(robot_trajectory);
 
-		if (!success)
+		if (!success) {
 			solution.markAsFailure();
+		}
 		return true;
 	}
 	return false;

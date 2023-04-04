@@ -101,8 +101,10 @@ void GenerateGraspPose::init(const core::RobotModelConstPtr& robot_model) {
 	const auto& props = properties();
 
 	// check angle_delta
-	if (props.get<double>("angle_delta") == 0.)
+	if (props.get<double>("angle_delta") == 0.) {
 		errors.push_back(*this, "angle_delta must be non-zero");
+		//std::cout<<"Warning angle_delta is zero!"<<std::endl;
+	}
 
 	// check availability of object
 	props.get<std::string>("object");
@@ -140,6 +142,14 @@ void GenerateGraspPose::onNewSolution(const SolutionBase& s) {
 	upstream_solutions_.push(&s);
 }
 
+void GenerateGraspPose::setPose(int current_angle, SubTrajectory& trajectory, geometry_msgs::PoseStamped& target_pose_msg) {
+	trajectory.setCost(0.0);
+	trajectory.setComment(std::to_string(current_angle));
+
+	// add frame at target pose
+	rviz_marker_tools::appendFrame(trajectory.markers(), target_pose_msg, 0.1, "grasp frame");
+}
+
 void GenerateGraspPose::compute() {
 	if (upstream_solutions_.empty())
 		return;
@@ -162,10 +172,13 @@ void GenerateGraspPose::compute() {
 	target_pose_msg.header.frame_id = props.get<std::string>("object");
 
 	double current_angle = 0.0;
-	while (current_angle < 2. * M_PI && current_angle > -2. * M_PI) {
+	while (current_angle < (props.get<double>("angle_delta")*4) && current_angle > - (props.get<double>("angle_delta")*4)) {
 		// rotate object pose about z-axis
 		Eigen::Isometry3d target_pose(Eigen::AngleAxisd(current_angle, Eigen::Vector3d::UnitZ()));
+		Eigen::Isometry3d target_pose_neg(Eigen::AngleAxisd(-current_angle, Eigen::Vector3d::UnitZ()));
+		double tmp_angle = current_angle;
 		current_angle += props.get<double>("angle_delta");
+		std::cout<<"current angle = "<<current_angle<<std::endl;
 
 		InterfaceState state(scene);
 		target_pose_msg.pose = tf2::toMsg(target_pose);
@@ -173,13 +186,21 @@ void GenerateGraspPose::compute() {
 		props.exposeTo(state.properties(), { "pregrasp", "grasp" });
 
 		SubTrajectory trajectory;
-		trajectory.setCost(0.0);
-		trajectory.setComment(std::to_string(current_angle));
-
-		// add frame at target pose
-		rviz_marker_tools::appendFrame(trajectory.markers(), target_pose_msg, 0.1, "grasp frame");
-
+		setPose(current_angle, trajectory, target_pose_msg);
 		spawn(std::move(state), std::move(trajectory));
+
+		InterfaceState state_neg(scene);
+		target_pose_msg.pose = tf2::toMsg(target_pose_neg);
+		state_neg.properties().set("target_pose", target_pose_msg);
+		props.exposeTo(state_neg.properties(), { "pregrasp", "grasp" });
+
+		SubTrajectory trajectory_neg;
+		setPose(-current_angle, trajectory_neg, target_pose_msg);
+		spawn(std::move(state_neg), std::move(trajectory_neg));
+
+		if (current_angle == tmp_angle) {
+			break;
+		}
 	}
 }
 }  // namespace stages
