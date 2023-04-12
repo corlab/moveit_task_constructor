@@ -117,13 +117,14 @@ bool Connect::compatible(const InterfaceState& from_state, const InterfaceState&
 	}
 	// all active joints that we don't plan for should match
 	for (const moveit::core::JointModel* jm : from.getRobotModel()->getJointModels()) {
-		if (planned_joint_names.count(jm->getName()))
+		if (planned_joint_names.count(jm->getName()) || jm->getName()=="franko_fr3_finger_joint1" || jm->getName()=="franko_fr3_finger_joint2") {
 			continue;  // ignore joints we plan for
+		}
 
 		const unsigned int num = jm->getVariableCount();
 		Eigen::Map<const Eigen::VectorXd> positions_from(from.getJointPositions(jm), num);
 		Eigen::Map<const Eigen::VectorXd> positions_to(to.getJointPositions(jm), num);
-		if (!(positions_from - positions_to).isZero(1e-3)) {
+		if (!(positions_from - positions_to).isZero(1e-4)) {
 			ROS_INFO_STREAM_NAMED("Connect", "Deviation in joint " << jm->getName() << ": from transpose [" << positions_from.transpose()
 			                                                       << "] != to transpose [" << positions_to.transpose() << "]");
 			return false;
