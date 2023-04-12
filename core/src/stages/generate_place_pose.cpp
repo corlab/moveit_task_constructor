@@ -111,13 +111,13 @@ void GeneratePlacePose::compute() {
 		ROS_DEBUG_STREAM_NAMED("place pose", "z_flips = " + z_flips);
 		for (uint flip = 0; flip <= z_flips; ++flip) {
 			// flip about object's x-axis
-			Eigen::Isometry3d object = nominal * Eigen::AngleAxisd(flip * M_PI, Eigen::Vector3d::UnitY());
+			Eigen::Isometry3d object = nominal * Eigen::AngleAxisd(flip * M_PI, Eigen::Vector3d::UnitX());
 			for (uint i = 0; i < z_rotations; ++i) {
 				// rotate object at target pose about world's z-axis
-				Eigen::Vector3d pos = object.translation();
-				object.pretranslate(-pos)
-				    .prerotate(Eigen::AngleAxisd(i * 2. * M_PI / z_rotations, Eigen::Vector3d::UnitZ()))
-				    .pretranslate(pos);
+				// Eigen::Vector3d pos = object.translation();
+				// object.pretranslate(-pos)
+				//     .prerotate(Eigen::AngleAxisd(i * 2. * M_PI / z_rotations, Eigen::Vector3d::UnitZ()))
+				//     .pretranslate(pos);
 
 				// target ik_frame's pose w.r.t. planning frame
 				geometry_msgs::PoseStamped target_pose_msg;
@@ -142,24 +142,27 @@ void GeneratePlacePose::compute() {
 	if (object && object->getShapes().size() == 1) {
 		switch (object->getShapes()[0]->type) {
 			case shapes::CYLINDER:
-				spawner(target_pose, z_flips);
+				ROS_ERROR_STREAM_NAMED("CYLINDER", "CYLINDER z_flips " + z_flips);
+				spawner(target_pose, z_flips, 1);
 				return;
 
 			case shapes::BOX: {  // consider 180/90 degree rotations about z axis
+				ROS_ERROR_STREAM_NAMED("BOX", "BOX z_flips " + z_flips);
 				const double* dims = static_cast<const shapes::Box&>(*object->getShapes()[0]).size;
 				spawner(target_pose, z_flips, (std::abs(dims[0] - dims[1]) < 1e-5) ? 4 : 2);
 				return;
 			}
 			case shapes::SPHERE:  // keep original orientation and rotate about world's z
-				spawner(target_pose, z_flips);
+				ROS_ERROR_STREAM_NAMED("SPHERE", "SPHERE z_flips " + z_flips);
 				return;
 			default:
 				break;
 		}
 	}
 
+	ROS_ERROR_STREAM_NAMED("any other case", " any other case z_flips " + 1);
 	// any other case: only try given target pose
-	spawner(target_pose, 1, 1);
+	spawner(target_pose, 0, 1);
 }
 }  // namespace stages
 }  // namespace task_constructor
