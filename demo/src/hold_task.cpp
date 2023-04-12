@@ -147,7 +147,7 @@ bool HoldTask::init() {
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
 		applicability_filter->setPredicate([objectT, objectL, objectI](const SolutionBase& s, std::string& comment) {
-			if (!s.start()->scene()->getCurrentState().hasAttachedBody(objectT) || s.start()->scene()->getCurrentState().hasAttachedBody(objectL) || s.start()->scene()->getCurrentState().hasAttachedBody(objectI)) {
+			if (s.start()->scene()->getCurrentState().hasAttachedBody(objectL) || s.start()->scene()->getCurrentState().hasAttachedBody(objectI)) {
 			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectT << "' is not attatched and/or '"  << objectL << "' and/or '"  << objectI  << "' is already attached and cannot be picked");
 				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectT << "' is attatched ? '"  << s.start()->scene()->getCurrentState().hasAttachedBody(objectT));
 				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectL << "' is attatched ? '"  << s.start()->scene()->getCurrentState().hasAttachedBody(objectL));
@@ -214,7 +214,7 @@ bool HoldTask::init() {
 			auto stage = std::make_unique<stages::GeneratePlacePose>("generate place pose");
 			stage->properties().configureInitFrom(Stage::PARENT, { "ik_frame" });
 			stage->properties().set("marker_ns", "place_pose");
-			stage->properties().set("allow_z_flip", true);
+			stage->properties().set("allow_z_flip", false);
 			stage->setObject(objectT);
 			// stage->setObject(assembly_object);
 
@@ -240,7 +240,8 @@ bool HoldTask::init() {
 			// Compute IK
 			auto wrapper = std::make_unique<stages::ComputeIK>("place pose IK", std::move(stage));
 			wrapper->setMaxIKSolutions(2);
-			wrapper->setIKFrame(grasp_frame_transform_, hand_frame_);
+			//wrapper->setIKFrame(grasp_frame_transform_, hand_frame_);
+			wrapper->setIKFrame(assemble_frame_transform_, hand_frame_);
 			//wrapper->setIKFrame(assemble_frame_transform_, "franko_fr3_hand_tcp");
 			wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
 			wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });

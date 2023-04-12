@@ -178,7 +178,7 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	ros::NodeHandle nh, pnh("~");
 	// Construct and run pick/place task
 	std::string place_name = "place_pose1";
-	moveit_task_constructor_demo::HoldTask hold_task("hold_task", place_name, pnh);
+	moveit_task_constructor_demo::HoldTask hold_task("hold_task_bottom", place_name, pnh);
 	if (!hold_task.init()) {
 		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
 		return false;
@@ -207,7 +207,36 @@ bool hold1(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	ros::NodeHandle nh, pnh("~");
 	// Construct and run pick/place task
 	std::string place_name = "place_pose2";
-	moveit_task_constructor_demo::HoldTask hold_task("hold_task", place_name, pnh);
+	moveit_task_constructor_demo::HoldTask hold_task("hold_task_front", place_name, pnh);
+	if (!hold_task.init()) {
+		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
+		return false;
+	}
+
+	if (hold_task.plan()) {
+		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+		if (pnh.param("execute", false)) {
+			//getchar();
+			hold_task.execute();
+			ROS_INFO_NAMED(LOGNAME, "Execution complete");
+			moveit_task_constructor_demo::spawnPipe(pnh, "assembly_object1");
+		} else {
+			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
+		}
+	} else {
+		ROS_INFO_NAMED(LOGNAME, "Planning failed");
+		ros::waitForShutdown();
+		return false;
+	}
+	//ros::waitForShutdown();
+	return true;
+}
+
+bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
+	ros::NodeHandle nh, pnh("~");
+	// Construct and run pick/place task
+	std::string place_name = "place_pose3";
+	moveit_task_constructor_demo::HoldTask hold_task("hold_task_back", place_name, pnh);
 	if (!hold_task.init()) {
 		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
 		return false;
@@ -246,10 +275,13 @@ int main(int argc, char** argv) {
 	ROS_INFO("Franko: ready to assemble.");
 	//ros::spin();*/
 
-	ros::ServiceServer hold_service = nh.advertiseService("franko_mtc_hold", hold);
+	ros::ServiceServer hold_service = nh.advertiseService("franko_hold_bottom", hold);
 	ROS_INFO("Franko: ready to hold.");
 
-	ros::ServiceServer hold1_service = nh.advertiseService("franko_mtc_hold_next", hold1);
+	ros::ServiceServer hold1_service = nh.advertiseService("franko_hold_front", hold1);
+	ROS_INFO("Franko: ready to hold. Again");
+
+	ros::ServiceServer hold2_service = nh.advertiseService("franko_hold_back", hold2);
 	ROS_INFO("Franko: ready to hold. Again");
 
 	// Construct and run pick/place task
