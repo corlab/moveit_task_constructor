@@ -37,6 +37,7 @@
 // ROS
 #include <ros/ros.h>
 #include <std_srvs/Trigger.h>
+#include <sensor_msgs/JointState.h>
 #include <franka_gripper/franka_gripper.h>
 #include <franka_gripper/GraspAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -49,6 +50,8 @@
 #include <moveit_task_constructor_demo/hold_task.h>
 
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
+sensor_msgs::JointState gripper_state;
+
 
 bool close_gripper() {	
 	actionlib::SimpleActionClient<franka_gripper::GraspAction> ac("/franko/franka_gripper/grasp", true);
@@ -88,6 +91,16 @@ bool close_gripper() {
 	//return true;
 }
 
+bool grasp_successful() {
+	// successfull grip [0.003919643349945545, 0.003919643349945545]
+	// unsuccessfull grip position: [0.00037331500789150596, 0.00037331500789150596]
+	if (gripper_state.position[0] > 0.002 && gripper_state.position[1] > 0.002 && gripper_state.position[0] < 0.005 && gripper_state.position[1] < 0.005) {
+		return true;
+	}
+	ROS_ERROR_NAMED(LOGNAME, "grasp unsuccessful gripper state is [%f, %f]", gripper_state.position[0], gripper_state.position[1]);
+	return false;
+}
+
 bool open_gripper() {	
 	actionlib::SimpleActionClient<franka_gripper::MoveAction> ac("/franko/franka_gripper/move", true);
 	// client = actionlib.SimpleActionClient('/franko/franka_gripper/grasp', franka_gripper.msg.GraspAction)
@@ -124,53 +137,83 @@ bool open_gripper() {
 	//return true;
 }
 
-bool assemble(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
+bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	ros::NodeHandle nh, pnh("~");
+
+	moveit_task_constructor_demo::setupDemoScene(pnh);
+
 	// Construct and run pick/place task
 	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", pnh);
 	if (!pick_place_task.init()) {
-		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-		return false;
+		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Initialization failed");
+		//return false;
+		res.success = false;
+		res.message = "PickPlaceTask Initialization failed";
+		return true;
 	}
 
 	bool gripper_open = open_gripper();
 
 	if (gripper_open && pick_place_task.plan()) {
-		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Planning succeded");
 		if (pnh.param("execute", false)) {
-			//getchar();
 			if (open_gripper()) {
 				pick_place_task.execute();
-				ROS_INFO_NAMED(LOGNAME, "Execution complete");
+				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
 					if (!move_home_task.init()) {
-						ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-						return false;
+						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
+						res.success = false;
+						res.message = "MoveHomeTask Initialization failed";
+						return true;
 					}
 					if (move_home_task.plan()) {
-						ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Planning succeded");
 						move_home_task.execute();
+						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Execution complete");
+						if (!grasp_successful()) {
+							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
+							//return false;
+							res.success = false;
+							res.message = "Grasp failed gripper closed to little or to much.";
+							return true;
+						}
 					}
 				} else {
-					ROS_INFO_NAMED(LOGNAME, "Execution failed");
-					ros::waitForShutdown();
-					return false;
+					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+					//ros::waitForShutdown();
+					//return false;
+					res.success = false;
+					res.message = "Gripper Execution failed";
+					return true;
 				}
 			} else {
 				ROS_INFO_NAMED(LOGNAME, "Execution failed");
-				ros::waitForShutdown();
-				return false;
+				//ros::waitForShutdown();
+				//return false;
+				res.success = false;
+				res.message = "Execution failed";
+				return true;
 			}
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
+			//return false;
+			res.success = false;
+			res.message = "Execution disabled";
+			return true;
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
-		return false;
+		//ros::waitForShutdown();
+		//return false;
+		res.success = false;
+		res.message = "Planning failed";
+		return true;
 	}
 	//ros::waitForShutdown();
+	res.success = true;
+	res.message = "I've got T.";
 	return true;
 }
 
@@ -191,6 +234,27 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 			hold_task.execute();
 			ROS_INFO_NAMED(LOGNAME, "Execution complete");
 			moveit_task_constructor_demo::spawnPipe(pnh, "assembly_object");
+
+			// ros::ServiceClient switch_controller = n.serviceClient<controller_manager_msgs::SwitchController>("franko/controller_manager/switch_controller");
+
+			// std::vector<std::string> start_controller;
+			// start_controller.push_back("effort_joint_trajectory_controller");
+			// std::vector<std::string> stop_controller;
+			// stop_controller.push_back("position_joint_trajectory_controller");
+			// controller_manager_msgs::SwitchController switch_controller_req;
+			// switch_controller_req.request.start_controllers = start_controller;
+			// switch_controller_req.request.stop_controllers = stop_controller;
+			// switch_controller_req.request.strictness = 1;
+			// switch_controller_req.request.start_asap = false;
+			// ros::service::waitForService("franko/controller_manager/switch_controller", ros::Duration(5));
+			// switch_controller.call(switch_controller_req);
+			// if (switch_controller_req.response.ok) {
+			// 	ROS_INFO_STREAM("Controller switch correctly");
+
+			// } else {
+			// 	ROS_ERROR_STREAM("Error occured trying to switch controller");
+			// 	return 0;
+			// }
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}
@@ -261,18 +325,27 @@ bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	return true;
 }
 
+void gripperCallback(const sensor_msgs::JointState::ConstPtr& msg)
+{
+	gripper_state = *msg;
+	//ROS_INFO("I heard: [%f, %f]", msg->position[0], msg->position[1]);
+	ROS_DEBUG("I heard: [%f, %f]", gripper_state.position[0], gripper_state.position[1]);
+}
+
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "mtc_tutorial");
 	ros::NodeHandle nh, pnh("~");
+
+	ros::Subscriber gripper_sub = nh.subscribe("/franko/franka_gripper/joint_states", 1, gripperCallback);
 
 	// Handle Task introspection requests from RViz & feedback during execution
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 
-	moveit_task_constructor_demo::setupDemoScene(pnh);
+	//moveit_task_constructor_demo::setupDemoScene(pnh);
 
-	ros::ServiceServer assembly_service = nh.advertiseService("franko_assemble", assemble);
-	ROS_INFO("Franko: ready to assemble.");
+	ros::ServiceServer assembly_service = nh.advertiseService("franko_mtc_pick", pick);
+	ROS_INFO("Franko: ready to pick.");
 	//ros::spin();*/
 
 	ros::ServiceServer hold_service = nh.advertiseService("franko_hold_bottom", hold);

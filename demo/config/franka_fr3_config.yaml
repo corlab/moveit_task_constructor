@@ -1,0 +1,55 @@
+max_solutions: 3
+
+# Planning group and link names
+arm_group_name: "fr3_arm"
+eef_name: "hand"
+hand_group_name: "hand"
+hand_frame: "fr3_hand_tcp"
+
+# Poses
+hand_open_pose: "open"
+hand_close_pose: "close"
+arm_home_pose: "home"
+
+# Scene frames
+world_frame: "world"
+table_reference_frame: "world"
+object_reference_frame: "fr3_link0"
+surface_link: "table"
+
+# Collision object for picking
+assembly_object_name: "pipe"
+assembly_object_dimensions: [0.2, 0.01] # [height, radius]
+assembly_object_pose: [0.239, -0.41, 0.147, 0, 0, 0]
+
+# Table model
+spawn_table: true
+table_name: "table"
+table_dimensions: [0.75, 0.75, 0.1]  # [length, width, height]
+table_pose: [0.025, -0.475, 0.0, 0, 0, 0]
+
+#spawn_magazine: true
+#magazine_name: "magazine"
+#magazine_dimensions: [0.1, 0.2, 0.01]  # [length, width, height]
+#magazine_file: "/home/humation/Documents/magazin_festo_komplett.stl"
+#magazine_file: "/home/franko/Documents/magazine_mirrored.stl"
+#magazine_pose: [0.239, -0.41, 0.147, 0, 0, 0]
+#magazine_pose: [0.11, 0.625, 0.0, 0, 0, -1.5708]
+
+# Gripper grasp frame transform [x,y,z,r,p,y] y,p,r?!
+grasp_frame_transform: [0, 0, 0, -1.571, -1.571, 0]
+
+# Place pose [x,y,z,r,p,y]
+#place_pose1: [0.2, -0.75, 0.376, 1.571, 0, -1.571]
+#place_pose2: [0.2, -0.75, 0.376, 0, -3.14, -1.571] 
+#place_pose3: [0.2, -0.75, 0.376, 0, -3.14, 1.571]
+
+place_surface_offset: 0.0001 # place offset from table
+
+# Valid distance range when approaching an object for picking
+approach_object_min_dist: 0.1
+approach_object_max_dist: 0.15
+
+# Valid height range when lifting an object after pick
+lift_object_min_dist: 0.01
+lift_object_max_dist: 0.16

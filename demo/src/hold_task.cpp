@@ -37,6 +37,8 @@
 #include <moveit_task_constructor_demo/hold_task.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <geometric_shapes/shape_operations.h>
+#include <iostream>
+#include <random>
 
 namespace moveit_task_constructor_demo {
 
@@ -224,6 +226,26 @@ bool HoldTask::init() {
 			// p.header.frame_id = "panda_link8";
 			// assembly_object_pose: [0.5, 0.3, 0.5, 0, 0, 0]
 			p.pose = place_pose_;
+
+			// bool vary = false;
+			// if (vary) {
+			// 	std::random_device rd; // obtain a random number from hardware
+    		// 	std::mt19937 gen(rd()); // seed the generator
+    		// 	std::uniform_int_distribution<> distr(-0.1, 0.1); // define the range
+
+			// 	x_offset = distr(gen)
+			// 	ROS_WARN_STREAM_NAMED(LOGNAME, "Varying x assembly possition by " << x_offset);
+			// 	p.pose.position.x += x_offset;
+
+			// 	y_offset = distr(gen)
+			// 	ROS_WARN_STREAM_NAMED(LOGNAME, "Varying y assembly possition by " << y_offset);
+			// 	p.pose.position.y += y_offset;
+				
+    		// 	//for(int n=0; n<40; ++n)
+        	// 	//	std::cout << distr(gen) << ' '; // generate numbers
+			// }
+
+
 			//p.pose = assembly_pose_;
 //			p.pose.position.x = 0.5;
 			//p.pose.position.y += object1_dimensions_[0] + (assembly_object_dimensions_[0] / 2) + place_surface_offset_;

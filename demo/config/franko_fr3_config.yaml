@@ -26,23 +26,24 @@ surface_link: "table"
 # CYLINDER object specifications
 objectT_name: "objectT"
 objectT_dimensions: [0.075, 0.0125] # [height, radius]
-objectT_file: "/home/humation/Documents/177688_CQT-15.stl"
+objectT_file: "/home/franko/Documents/177688_CQT-15.stl"
 #objectT_pose: [0.0775, 0.491, 0.064, 1.5708, 1.5708, 0]
 #objectT_pose: [0.1525, 0.491, 0.064, 1.5708, 1.5708, 0]
 #objectT_pose: [0.155, 0.4915, 0.08, 1.5708, 1.5708, 0] # real tall magazine
 objectT_pose: [0.155, 0.4915, 0.06, 1.5708, 1.5708, 0] # real short magazine
+#objectT_pose: [0.155, 0.4915, 0.10, 1.5708, 1.5708, 0] # real short magazine high
 #objectT_pose: [0.3225, 0.4915, 0.0465, 1.5708, 1.5708, 0]
 #objectT_pose: [0.0775, 0.591, 0.064, 1.5708, 1.5708, 0]
 
 objectL_name: "objectL"
 #objectL_dimensions: [0.043, 0.0125] # [height, radius]
-objectL_file: "/home/humation/Documents/177692_CQL-15.stl"
+objectL_file: "/home/franko/Documents/177692_CQL-15.stl"
 objectL_pose: [0.2175, 0.436, 0.064, 1.5708, 1.5708, 0]
 #objectL_pose: [0.1425, 0.5425, 0.064, 1.5708, 1.5708, 0]
 
 objectI_name: "objectI"
 #objectI_dimensions: [0.043, 0.0125] # [height, radius]
-objectI_file: "/home/humation/Documents/177696_CQ-15.stl"
+objectI_file: "/home/franko/Documents/177696_CQ-15.stl"
 objectI_pose: [0.2175, 0.546, 0.057, 0, 0, 0]
 #objectI_pose: [0.1425, 0.6525, 0.057, 0, 0, 0]
 
@@ -63,7 +64,7 @@ spawn_magazine: true
 magazine_name: "magazine"
 #magazine_dimensions: [0.1, 0.2, 0.01]  # [length, width, height]
 #magazine_file: "/home/humation/Documents/magazin_festo_komplett.stl"
-magazine_file: "/home/humation/Documents/magazine_mirrored.stl"
+magazine_file: "/home/franko/Documents/magazine_mirrored.stl"
 magazine_pose: [0,184, 0.5185, 0.0, 0, 0, -1.5708]
 #magazine_pose: [0.11, 0.625, 0.0, 0, 0, -1.5708]
 
