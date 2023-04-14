@@ -45,6 +45,7 @@
 
 // MTC pick/place demo implementation
 #include <moveit_task_constructor_demo/franka_pick_task.h>
+#include <moveit_task_constructor_demo/move_home_task.h>
 
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 
@@ -130,7 +131,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 
 	// Construct and run pick/place task
 	moveit_task_constructor_demo::FrankaPickTask franka_pick_task("franka_pick_task", pnh);
-	if (!franka_pick_task.init()) {
+	if (!franka_pick_task.init("pipe")) {
 		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
 		return false;
 	}
@@ -146,15 +147,15 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "Execution complete");
 				if (close_gripper()) {
 					ROS_INFO_NAMED(LOGNAME, "Execution complete");
-					// moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					// if (!move_home_task.init()) {
-					// 	ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-					// 	return false;
-					// }
-					// if (move_home_task.plan()) {
-					// 	ROS_INFO_NAMED(LOGNAME, "Planning succeded");
-					// 	move_home_task.execute();
-					// }
+					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
+					if (!move_home_task.init("pipe")) {
+						ROS_INFO_NAMED(LOGNAME, "Initialization failed");
+						return false;
+					}
+					if (move_home_task.plan()) {
+						ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+						move_home_task.execute();
+					}
 				} else {
 					ROS_INFO_NAMED(LOGNAME, "Execution failed");
 					ros::waitForShutdown();

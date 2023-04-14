@@ -1,0 +1,8 @@
+prefix=/home/humation/catkin_ws/src/moveit_task_constructor/demo/cmake-build-debug/devel
+
+Name: moveit_task_constructor_demo
+Description: Description of moveit_task_constructor_demo
+Version: 0.1.3
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp

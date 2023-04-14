@@ -101,11 +101,12 @@ void MoveHomeTask::loadParameters() {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool MoveHomeTask::init() {
+bool MoveHomeTask::init(std::string object_name) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	const std::string objectT = objectT_name_;
-	const std::string objectL = objectL_name_;
-	const std::string objectI = objectI_name_;
+	const std::string object = object_name;
+	// const std::string objectT = objectT_name_;
+	// const std::string objectL = objectL_name_;
+	// const std::string objectI = objectI_name_;
 	const std::string assembly_object = assembly_object_name_;
 
 	// Reset ROS introspection before constructing the new object
@@ -146,10 +147,10 @@ bool MoveHomeTask::init() {
 		// Verify that object is not attached
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
-		applicability_filter->setPredicate([objectT, objectL, objectI](const SolutionBase& s, std::string& comment) {
-			if (s.start()->scene()->getCurrentState().hasAttachedBody(objectT) || s.start()->scene()->getCurrentState().hasAttachedBody(objectL) || s.start()->scene()->getCurrentState().hasAttachedBody(objectI)) {
-			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectT << "' and/or '"  << objectL << "' and/or '"  << objectI  << "' is already attached and cannot be picked");
-				comment = "object with id '" + objectT + "' and/or '" + objectL + "' and/or '" + objectI + "' is already attached and cannot be picked";
+		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
+			if (s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
+			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is already attached and cannot be picked");
+				comment = "object with id '" + object + "' is already attached and cannot be picked";
 				return false;
 			}
 			return true;
@@ -162,8 +163,8 @@ bool MoveHomeTask::init() {
  	*               Attach Object                      *
 	***************************************************/
 	{
-		auto stage = std::make_unique<stages::ModifyPlanningScene>("attach objectT");
-		stage->attachObject(objectT, hand_frame_);
+		auto stage = std::make_unique<stages::ModifyPlanningScene>("attach object");
+		stage->attachObject(object, hand_frame_);
 		t.add(std::move(stage));
 	}
 
@@ -171,8 +172,8 @@ bool MoveHomeTask::init() {
  	*               Allow collision (object support)   *
 	***************************************************/
 	{
-		auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (objectT,support)");
-		stage->allowCollisions({ objectT }, support_surfaces_, true);
+		auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,support)");
+		stage->allowCollisions({ object }, support_surfaces_, true);
 		t.add(std::move(stage));
 	}
 
@@ -180,7 +181,7 @@ bool MoveHomeTask::init() {
  	*               Lift object                        *
 	***************************************************/
 	{
-		auto stage = std::make_unique<stages::MoveRelative>("lift objectT", cartesian_planner);
+		auto stage = std::make_unique<stages::MoveRelative>("lift object", cartesian_planner);
 		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
 		stage->setMinMaxDistance(lift_object_min_dist_, lift_object_max_dist_);
 		stage->setIKFrame(hand_frame_);
@@ -199,8 +200,8 @@ bool MoveHomeTask::init() {
     *               Forbid collision (object support)  *
 	***************************************************/
 	{
-		auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (objectT,support)");
-		stage->allowCollisions({ objectT }, support_surfaces_, false);
+		auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (object,support)");
+		stage->allowCollisions({ object }, support_surfaces_, false);
 		t.add(std::move(stage));
 	}
 

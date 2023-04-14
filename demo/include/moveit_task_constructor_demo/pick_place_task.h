@@ -73,7 +73,7 @@ public:
 	PickPlaceTask(const std::string& task_name, const ros::NodeHandle& pnh);
 	~PickPlaceTask() = default;
 
-	bool init();
+	bool init(std::string object_name);
 
 	bool plan();
 

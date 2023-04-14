@@ -280,11 +280,12 @@ void PickPlaceTask::loadParameters() {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool PickPlaceTask::init() {
+bool PickPlaceTask::init(std::string object_name) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	const std::string objectT = objectT_name_;
-	const std::string objectL = objectL_name_;
-	const std::string objectI = objectI_name_;
+	const std::string object = object_name;
+	// const std::string objectT = objectT_name_;
+	// const std::string objectL = objectL_name_;
+	// const std::string objectI = objectI_name_;
 	const std::string assembly_object = assembly_object_name_;
 
 	// Reset ROS introspection before constructing the new object
@@ -325,10 +326,10 @@ bool PickPlaceTask::init() {
 		// Verify that object is not attached
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
-		applicability_filter->setPredicate([objectT, objectL, objectI](const SolutionBase& s, std::string& comment) {
-			if (s.start()->scene()->getCurrentState().hasAttachedBody(objectT) || s.start()->scene()->getCurrentState().hasAttachedBody(objectL) || s.start()->scene()->getCurrentState().hasAttachedBody(objectI)) {
-			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectT << "' and/or '"  << objectL << "' and/or '"  << objectI  << "' is already attached and cannot be picked");
-				comment = "object with id '" + objectT + "' and/or '" + objectL + "' and/or '" + objectI + "' is already attached and cannot be picked";
+		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
+			if (s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
+			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is already attached and cannot be picked");
+				comment = "object with id '" + object + "' is already attached and cannot be picked";
 				return false;
 			}
 			return true;
@@ -426,7 +427,8 @@ bool PickPlaceTask::init() {
 			stage->properties().configureInitFrom(Stage::PARENT);
 			stage->properties().set("marker_ns", "grasp_pose");
 			stage->setPreGraspPose(hand_open_pose_);
-			stage->setObject(objectT);
+			//stage->setObject(objectT);
+			stage->setObject(object);
 			//stage->setAngleDelta(M_PI / 6);
 			stage->setAngleDelta(M_PI / 48);
 			stage->setMonitoredStage(initial_state_ptr);  // hook into successful initial-phase solutions
@@ -447,9 +449,9 @@ bool PickPlaceTask::init() {
   ---- *               Allow Collision (hand object)   *
 		 ***************************************************/
 		{
-			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (hand,objectT)");
+			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (hand,object)");
 			stage->allowCollisions(
-			    objectT, t.getRobotModel()->getJointModelGroup(hand_group_name_)->getLinkModelNamesWithCollisionGeometry(),
+			    object, t.getRobotModel()->getJointModelGroup(hand_group_name_)->getLinkModelNamesWithCollisionGeometry(),
 			    true);
 			grasp->insert(std::move(stage));
 		}

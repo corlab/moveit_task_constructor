@@ -144,7 +144,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 
 	// Construct and run pick/place task
 	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", pnh);
-	if (!pick_place_task.init()) {
+	if (!pick_place_task.init("objectT")) {
 		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Initialization failed");
 		//return false;
 		res.success = false;
@@ -162,7 +162,87 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init()) {
+					if (!move_home_task.init("objectT")) {
+						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
+						res.success = false;
+						res.message = "MoveHomeTask Initialization failed";
+						return true;
+					}
+					if (move_home_task.plan()) {
+						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Planning succeded");
+						move_home_task.execute();
+						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Execution complete");
+						if (!grasp_successful()) {
+							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
+							//return false;
+							res.success = false;
+							res.message = "Grasp failed gripper closed to little or to much.";
+							return true;
+						}
+					}
+				} else {
+					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+					//ros::waitForShutdown();
+					//return false;
+					res.success = false;
+					res.message = "Gripper Execution failed";
+					return true;
+				}
+			} else {
+				ROS_INFO_NAMED(LOGNAME, "Execution failed");
+				//ros::waitForShutdown();
+				//return false;
+				res.success = false;
+				res.message = "Execution failed";
+				return true;
+			}
+		} else {
+			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
+			//return false;
+			res.success = false;
+			res.message = "Execution disabled";
+			return true;
+		}
+	} else {
+		ROS_INFO_NAMED(LOGNAME, "Planning failed");
+		//ros::waitForShutdown();
+		//return false;
+		res.success = false;
+		res.message = "Planning failed";
+		return true;
+	}
+	//ros::waitForShutdown();
+	res.success = true;
+	res.message = "I've got T.";
+	return true;
+}
+
+bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
+	ros::NodeHandle nh, pnh("~");
+
+	moveit_task_constructor_demo::setupDemoScene(pnh);
+
+	// Construct and run pick/place task
+	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", pnh);
+	if (!pick_place_task.init("objectL")) {
+		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Initialization failed");
+		//return false;
+		res.success = false;
+		res.message = "PickPlaceTask Initialization failed";
+		return true;
+	}
+
+	bool gripper_open = open_gripper();
+
+	if (gripper_open && pick_place_task.plan()) {
+		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Planning succeded");
+		if (pnh.param("execute", false)) {
+			if (open_gripper()) {
+				pick_place_task.execute();
+				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
+				if (close_gripper()) {
+					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
+					if (!move_home_task.init("objectL")) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";
@@ -344,9 +424,12 @@ int main(int argc, char** argv) {
 
 	//moveit_task_constructor_demo::setupDemoScene(pnh);
 
-	ros::ServiceServer assembly_service = nh.advertiseService("franko_mtc_pick", pick);
-	ROS_INFO("Franko: ready to pick.");
+	ros::ServiceServer pick_back_service = nh.advertiseService("franko_mtc_pick_back", pick);
+	ROS_INFO("Franko: ready to pick T.");
 	//ros::spin();*/
+
+	ros::ServiceServer pick_front_service = nh.advertiseService("franko_mtc_pick_front", pickL);
+	ROS_INFO("Franko: ready to pick L.");
 
 	ros::ServiceServer hold_service = nh.advertiseService("franko_hold_bottom", hold);
 	ROS_INFO("Franko: ready to hold.");

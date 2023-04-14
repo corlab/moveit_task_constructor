@@ -105,9 +105,17 @@ void HoldTask::loadParameters(const std::string& place_name) {
 
 bool HoldTask::init() {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	const std::string objectT = objectT_name_;
-	const std::string objectL = objectL_name_;
-	const std::string objectI = objectI_name_;
+	moveit::planning_interface::PlanningSceneInterface psi;
+	std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = psi.getAttachedObjects();
+	std::vector<std::string> ids = {};
+	for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
+		ids.push_back(object.first);
+	}
+	const std::string object = ids.at(0);
+	//const std::string object; // = object_name_;
+	// const std::string objectT = objectT_name_;
+	// const std::string objectL = objectL_name_;
+	// const std::string objectI = objectI_name_;
 	const std::string assembly_object = assembly_object_name_;
 
 	// Reset ROS introspection before constructing the new object
@@ -148,15 +156,12 @@ bool HoldTask::init() {
 		// Verify that object is not attached
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
-		applicability_filter->setPredicate([objectT, objectL, objectI](const SolutionBase& s, std::string& comment) {
-			if (s.start()->scene()->getCurrentState().hasAttachedBody(objectL) || s.start()->scene()->getCurrentState().hasAttachedBody(objectI)) {
-			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectT << "' is not attatched and/or '"  << objectL << "' and/or '"  << objectI  << "' is already attached and cannot be picked");
-				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectT << "' is attatched ? '"  << s.start()->scene()->getCurrentState().hasAttachedBody(objectT));
-				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectL << "' is attatched ? '"  << s.start()->scene()->getCurrentState().hasAttachedBody(objectL));
-				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << objectI << "' is attatched ? '"  << s.start()->scene()->getCurrentState().hasAttachedBody(objectI));
-				comment = "object with id '" + objectT + "' is not attatched and/or '" + objectL + "' and/or '" + objectI + "' is already attached and cannot be picked";
-				return false;
-			}
+		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
+			// if (!s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
+			//     ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is not attatched");
+			// 	comment = "object with id '" + object + "' is not attached";
+			// 	return false;
+			// }
 			return true;
 		});
 		//initial_state_ptr = current_state.get();  // remember start state for monitoring grasp pose generator
@@ -217,7 +222,7 @@ bool HoldTask::init() {
 			stage->properties().configureInitFrom(Stage::PARENT, { "ik_frame" });
 			stage->properties().set("marker_ns", "place_pose");
 			stage->properties().set("allow_z_flip", false);
-			stage->setObject(objectT);
+			stage->setObject(object);
 			// stage->setObject(assembly_object);
 
 			// Set target pose
@@ -274,8 +279,8 @@ bool HoldTask::init() {
   ---- *               Allow Collision (object object)   *
 		 ***************************************************/
 		{
-			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (objectT , assembly object)");
-			stage->allowCollisions(assembly_object, objectT, true);
+			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object , assembly object)");
+			stage->allowCollisions(assembly_object, object, true);
 			place->insert(std::move(stage));
 		}
 

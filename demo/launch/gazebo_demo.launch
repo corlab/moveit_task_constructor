@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- specify the planning pipeline -->
+  <arg name="pipeline" default="ompl" />
+
+  <!-- Panda specific options -->
+  <arg name="load_gripper" default="true" />
+  <arg name="transmission" default="effort" />
+
+  <!-- Gazebo specific options -->
+  <arg name="gazebo_gui" default="true" />
+  <arg name="paused" default="false" />
+
+  <arg name="world" default="$(find franka_gazebo)/world/stone.sdf"/>
+
+  <!-- Launch the gazebo simulator and spawn the robot -->
+  <include file="$(find franka_gazebo)/launch/panda.launch" pass_all_args="true">
+    <arg name="headless" value="$(eval not arg('gazebo_gui'))" />
+    <arg name="use_gripper" default="$(arg load_gripper)" />
+    <arg name="controller" default="$(arg transmission)_joint_trajectory_controller"/>
+<!--    <arg name="x" default="-0.6"/>-->
+  </include>
+
+  <!-- Load panda demo with MTC's execution capability -->
+  <!--<include file="$(find moveit_resources_panda_moveit_config)/launch/demo.launch">
+    <arg name="use_rviz" value="false"/>
+    <arg name="load_robot_description" value="false" />
+    <arg name="moveit_controller_manager" value="simple" />
+  </include>-->
+  <include file="$(find panda_moveit_config)/launch/demo.launch">
+    <arg name="use_rviz" value="false"/>
+    <arg name="load_robot_description" value="false" />
+    <arg name="moveit_controller_manager" value="simple" />
+  </include>
+  <param name="move_group/capabilities" value="move_group/ExecuteTaskSolutionCapability" />
+
+  <!-- Run rviz with prepared config -->
+  <include file="$(find moveit_resources_panda_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="rviz_config" value="$(find moveit_task_constructor_demo)/config/mtc.rviz" />
+  </include>
+</launch>
