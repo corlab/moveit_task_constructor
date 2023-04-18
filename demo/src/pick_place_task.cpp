@@ -210,9 +210,15 @@ void setupDemoScene(ros::NodeHandle& pnh) {
 	   spawnObject(psi, createTable(pnh));
 	if (pnh.param("spawn_magazine", true))
 	   spawnObject(psi, createMagazine(pnh));
-	spawnObject(psi, createObject(pnh, "objectT"));
-	spawnObject(psi, createObject(pnh, "objectL"));
-	spawnObject(psi, createObject(pnh, "objectI"));
+	spawnObject(psi, createObject(pnh, "objectT1"));
+	spawnObject(psi, createObject(pnh, "objectT2"));
+	spawnObject(psi, createObject(pnh, "objectT3"));
+	spawnObject(psi, createObject(pnh, "objectT4"));
+	spawnObject(psi, createObject(pnh, "objectL1"));
+	spawnObject(psi, createObject(pnh, "objectL2"));
+	spawnObject(psi, createObject(pnh, "objectL3"));
+	spawnObject(psi, createObject(pnh, "objectL4"));
+	//spawnObject(psi, createObject(pnh, "objectI"));
 	//spawnObject(psi, createAssemblyObject(pnh));
 }
 
@@ -251,12 +257,24 @@ void PickPlaceTask::loadParameters() {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_home_pose", arm_home_pose_);
 
 	// Pick object
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT_name", objectT_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL_name", objectL_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT1_name", objectT1_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT2_name", objectT2_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT3_name", objectT3_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT4_name", objectT4_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL1_name", objectL1_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL2_name", objectL2_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL3_name", objectL3_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_name", objectL4_name_);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object1_dimensions", object1_dimensions_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_name", objectI_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT_file", objectT_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL_file", objectL_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT1_file", objectT1_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT2_file", objectT2_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT3_file", objectT3_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT4_file", objectT4_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL1_file", objectL1_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL2_file", objectL2_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL3_file", objectL3_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_file", objectL4_file_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_file", objectI_file_);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object2_dimensions", object2_dimensions_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object_reference_frame", object_reference_frame_);
@@ -368,7 +386,7 @@ bool PickPlaceTask::init(std::string object_name) {
 		// Set hand forward direction
 		geometry_msgs::Vector3Stamped vec;
 		vec.header.frame_id = hand_frame_;
-		vec.vector.z = 0.02;
+		vec.vector.z = -0.005;
 		stage->setDirection(vec);
 		initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
 		t.add(std::move(stage));
@@ -430,7 +448,7 @@ bool PickPlaceTask::init(std::string object_name) {
 			//stage->setObject(objectT);
 			stage->setObject(object);
 			//stage->setAngleDelta(M_PI / 6);
-			stage->setAngleDelta(M_PI / 48);
+			stage->setAngleDelta(M_PI / 60);
 			stage->setMonitoredStage(initial_state_ptr);  // hook into successful initial-phase solutions
 
 			// Compute IK

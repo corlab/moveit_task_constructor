@@ -51,6 +51,8 @@
 
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 sensor_msgs::JointState gripper_state;
+int t_id = 1;
+int l_id = 1;
 
 
 bool close_gripper() {	
@@ -144,7 +146,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 
 	// Construct and run pick/place task
 	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", pnh);
-	if (!pick_place_task.init("objectT")) {
+	if (!pick_place_task.init("objectT" + std::to_string(t_id))) {
 		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Initialization failed");
 		//return false;
 		res.success = false;
@@ -162,7 +164,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init("objectT")) {
+					if (!move_home_task.init("objectT" + std::to_string(t_id))) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";
@@ -175,6 +177,10 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 						if (!grasp_successful()) {
 							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
 							//return false;
+							t_id += 1;
+							if (t_id > 4) {
+								t_id = 1;
+							}
 							res.success = false;
 							res.message = "Grasp failed gripper closed to little or to much.";
 							return true;
@@ -212,6 +218,10 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		return true;
 	}
 	//ros::waitForShutdown();
+	t_id += 1;
+	if (t_id > 4) {
+		t_id = 1;
+	}
 	res.success = true;
 	res.message = "I've got T.";
 	return true;
@@ -224,7 +234,7 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 
 	// Construct and run pick/place task
 	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", pnh);
-	if (!pick_place_task.init("objectL")) {
+	if (!pick_place_task.init("objectL" + std::to_string(l_id))) {
 		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Initialization failed");
 		//return false;
 		res.success = false;
@@ -242,7 +252,7 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init("objectL")) {
+					if (!move_home_task.init("objectL" + std::to_string(l_id))) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";
@@ -255,6 +265,10 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 						if (!grasp_successful()) {
 							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
 							//return false;
+							l_id += 1;
+							if (l_id > 4) {
+								l_id = 1;
+							}
 							res.success = false;
 							res.message = "Grasp failed gripper closed to little or to much.";
 							return true;
@@ -292,6 +306,10 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		return true;
 	}
 	//ros::waitForShutdown();
+	l_id += 1;
+	if (l_id > 4) {
+		l_id = 1;
+	}
 	res.success = true;
 	res.message = "I've got T.";
 	return true;
@@ -304,7 +322,9 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	moveit_task_constructor_demo::HoldTask hold_task("hold_task_bottom", place_name, pnh);
 	if (!hold_task.init()) {
 		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-		return false;
+		res.success = false;
+		res.message = "not holding";
+		return true;
 	}
 
 	if (hold_task.plan()) {
@@ -340,10 +360,14 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
-		return false;
+		//ros::waitForShutdown();
+		res.success = false;
+		res.message = "not holding.";
+		return true;	
 	}
 	//ros::waitForShutdown();
+	res.success = true;
+	res.message = "holding";
 	return true;
 }
 
@@ -354,7 +378,9 @@ bool hold1(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	moveit_task_constructor_demo::HoldTask hold_task("hold_task_front", place_name, pnh);
 	if (!hold_task.init()) {
 		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-		return false;
+		res.success = false;
+		res.message = "not holding.";
+		return true;
 	}
 
 	if (hold_task.plan()) {
@@ -369,10 +395,14 @@ bool hold1(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
-		return false;
+		//ros::waitForShutdown();
+		res.success = false;
+		res.message = "not holding";
+		return true;
 	}
 	//ros::waitForShutdown();
+	res.success = true;
+	res.message = "holding.";
 	return true;
 }
 
@@ -383,7 +413,9 @@ bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	moveit_task_constructor_demo::HoldTask hold_task("hold_task_back", place_name, pnh);
 	if (!hold_task.init()) {
 		ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-		return false;
+		res.success = false;
+		res.message = "not holding.";
+		return true;
 	}
 
 	if (hold_task.plan()) {
@@ -398,10 +430,14 @@ bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
-		return false;
+		//ros::waitForShutdown();
+		res.success = false;
+		res.message = "not holding.";
+		return true;
 	}
 	//ros::waitForShutdown();
+	res.success = true;
+	res.message = "holding.";
 	return true;
 }
 

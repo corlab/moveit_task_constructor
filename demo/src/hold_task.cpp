@@ -74,13 +74,25 @@ void HoldTask::loadParameters(const std::string& place_name) {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_home_pose", arm_home_pose_);
 
 	// Pick object
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT_name", objectT_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL_name", objectL_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT1_name", objectT1_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT2_name", objectT2_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT3_name", objectT3_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT4_name", objectT4_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL1_name", objectL1_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL2_name", objectL2_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL3_name", objectL3_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_name", objectL4_name_);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object1_dimensions", object1_dimensions_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_name", objectI_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT_file", objectT_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL_file", objectL_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_file", objectI_file_);
+	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_name", objectI_name_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT1_file", objectT1_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT2_file", objectT2_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT3_file", objectT3_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT4_file", objectT4_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL1_file", objectL1_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL2_file", objectL2_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL3_file", objectL3_file_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_file", objectL4_file_);
+	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_file", objectI_file_);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object2_dimensions", object2_dimensions_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object_reference_frame", object_reference_frame_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link_);
