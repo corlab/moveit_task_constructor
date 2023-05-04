@@ -177,10 +177,10 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 						if (!grasp_successful()) {
 							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
 							//return false;
-							t_id += 1;
-							if (t_id > 4) {
-								t_id = 1;
-							}
+							// t_id += 1;
+							// if (t_id > 4) {
+							// 	t_id = 1;
+							// }
 							res.success = false;
 							res.message = "Grasp failed gripper closed to little or to much.";
 							return true;
@@ -218,10 +218,10 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		return true;
 	}
 	//ros::waitForShutdown();
-	t_id += 1;
-	if (t_id > 4) {
-		t_id = 1;
-	}
+	// t_id += 1;
+	// if (t_id > 4) {
+	// 	t_id = 1;
+	// }
 	res.success = true;
 	res.message = "I've got T.";
 	return true;
