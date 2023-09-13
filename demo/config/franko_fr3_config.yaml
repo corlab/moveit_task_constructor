@@ -27,19 +27,19 @@ surface_link: "table"
 objectT1_name: "objectT1"
 objectT_dimensions: [0.075, 0.0125]
 objectT1_file: "/home/humation/Documents/177688_CQT-15.stl"
-objectT1_pose: [0.281, 0.367, 0.06, 1.5708, 0, 0]
+objectT1_pose: [0.2825, 0.367, 0.06, 1.5708, 0, 0]
 
 objectT2_name: "objectT2"
 objectT2_file: "/home/humation/Documents/177688_CQT-15.stl"
-objectT2_pose: [0.174, 0.37, 0.06, 1.5708, 0, 0]
+objectT2_pose: [0.1755, 0.37, 0.06, 1.5708, 0, 0]
 
 objectT3_name: "objectT3"
 objectT3_file: "/home/humation/Documents/177688_CQT-15.stl"
-objectT3_pose: [0.335, 0.425, 0.06, 1.5708, 0, 0]
+objectT3_pose: [0.336, 0.425, 0.06, 1.5708, 0, 0]
 
 objectT4_name: "objectT4"
 objectT4_file: "/home/humation/Documents/177688_CQT-15.stl"
-objectT4_pose: [0.227, 0.428, 0.06, 1.5708, 0, 0]
+objectT4_pose: [0.229, 0.428, 0.06, 1.5708, 0, 0]
 
 # ---
 
@@ -49,11 +49,11 @@ objectL1_pose: [0.286, 0.545, 0.06, 1.5708, 0, 0]
 
 objectL2_name: "objectL2"
 objectL2_file: "/home/humation/Documents/177692_CQL-15.stl"
-objectL2_pose: [0.176, 0.547, 0.06, 1.5708, 0, 0]
+objectL2_pose: [0.176, 0.549, 0.06, 1.5708, 0, 0]
 
 objectL3_name: "objectL3"
 objectL3_file: "/home/humation/Documents/177692_CQL-15.stl"
-objectL3_pose: [0.338, 0.603, 0.06, 1.5708, 0, 0]
+objectL3_pose: [0.338, 0.605, 0.06, 1.5708, 0, 0]
 
 objectL4_name: "objectL4"
 objectL4_file: "/home/humation/Documents/177692_CQL-15.stl"
