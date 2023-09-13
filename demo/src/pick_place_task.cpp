@@ -111,6 +111,40 @@ moveit_msgs::CollisionObject createMagazine(const ros::NodeHandle& pnh) {
 	return object;
 }
 
+// moveit_msgs::CollisionObject createMagazineT(const ros::NodeHandle& pnh) {
+// 	std::string magazine_name, table_reference_frame, magazine_file;
+// 	//std::vector<double> magazine_dimensions;
+// 	geometry_msgs::Pose pose;
+// 	std::size_t errors = 0;
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_T_name", magazine_name);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_reference_frame", table_reference_frame);
+// 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_dimensions", magazine_dimensions);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_T_file", magazine_file);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_T_pose", pose);
+// 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
+
+// 	moveit_msgs::CollisionObject object;
+// 	object.id = magazine_name;
+// 	object.header.frame_id = table_reference_frame;
+// 	Eigen::Vector3d scale_vec(0.001, 0.001, 0.001);
+// 	shapes::Mesh* mesh = shapes::createMeshFromResource("file:" + magazine_file, scale_vec);
+// 	ROS_INFO("mesh loaded");
+// 	shape_msgs::Mesh obj_mesh;
+// 	shapes::ShapeMsg mesh_msg;  
+// 	shapes::constructMsgFromShape(mesh, mesh_msg);    
+// 	obj_mesh = boost::get<shape_msgs::Mesh>(mesh_msg);  
+// 	object.meshes.resize(1);
+// 	object.mesh_poses.resize(1);
+// 	object.meshes[0] = obj_mesh;
+// 	// object.primitives.resize(1);
+// 	// object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+// 	// object.primitives[0].dimensions = magazine_dimensions;
+// 	// pose.position.z -= 0.5 * magazine_dimensions[2];  // align surface with world
+// 	// object.primitive_poses.push_back(pose);
+// 	object.mesh_poses[0] = pose;
+// 	return object;
+// }
+
 moveit_msgs::CollisionObject createObject(const ros::NodeHandle& pnh, const std::string object_id) {
 	std::string object_name, object_reference_frame, object_file;
 	//std::vector<double> object_dimensions;
@@ -293,7 +327,7 @@ void PickPlaceTask::loadParameters() {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_min_dist", lift_object_min_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_max_dist", lift_object_max_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_surface_offset", place_surface_offset_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_pose1", place_pose_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hold_pose1", place_pose_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_pose", assembly_pose_);
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
@@ -337,9 +371,10 @@ bool PickPlaceTask::init(std::string object_name) {
 	 *               Current State                      *
 	 *                                                  *
 	 ***************************************************/
-	//Stage* initial_state_ptr = nullptr;
+	Stage* initial_state_ptr = nullptr;
 	{
 		auto current_state = std::make_unique<stages::CurrentState>("current state");
+		initial_state_ptr = current_state.get();
 
 		// Verify that object is not attached
 		auto applicability_filter =
@@ -375,22 +410,22 @@ bool PickPlaceTask::init(std::string object_name) {
 	 *               memorise                           *
 	 *                                                  *
 	 ***************************************************/
-	Stage* initial_state_ptr = nullptr;
-	{  // Open Hand
-		auto stage = std::make_unique<stages::MoveRelative>("memorise", sampling_planner);
-		stage->properties().set("marker_ns", "memorise");
-		stage->properties().set("link", hand_frame_);
-		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
-		stage->setMinMaxDistance(0.0, 0.03);
+	// Stage* initial_state_ptr = nullptr;
+	// {  // Open Hand
+	// 	auto stage = std::make_unique<stages::MoveRelative>("memorise", sampling_planner);
+	// 	stage->properties().set("marker_ns", "memorise");
+	// 	stage->properties().set("link", hand_frame_);
+	// 	stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+	// 	stage->setMinMaxDistance(0.0, 0.03);
 
-		// Set hand forward direction
-		geometry_msgs::Vector3Stamped vec;
-		vec.header.frame_id = hand_frame_;
-		vec.vector.z = -0.005;
-		stage->setDirection(vec);
-		initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
-		t.add(std::move(stage));
-	}
+	// 	// Set hand forward direction
+	// 	geometry_msgs::Vector3Stamped vec;
+	// 	vec.header.frame_id = hand_frame_;
+	// 	vec.vector.z = -0.005;
+	// 	stage->setDirection(vec);
+	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
+	// 	t.add(std::move(stage));
+	// }
 
 
 	/****************************************************

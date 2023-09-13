@@ -4,7 +4,10 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /PlanningScene1/Scene Geometry1
+        - /PlanningScene1/Scene Robot1
         - /Motion Planning Tasks1
+        - /Motion Planning Tasks1/Status1
       Splitter Ratio: 0.5393258333206177
     Tree Height: 533
   - Class: rviz/Help
@@ -29,11 +32,14 @@ Panels:
         column: 1
         order: 0
       solutions_splitter:
-        - 306
-        - 98
-      solutions_view_columns: ~
+        - 325
+        - 79
+      solutions_view_columns:
+        - 57
+        - 61
+        - 0
       tasks_view_columns:
-        - 133
+        - 152
         - 57
         - 57
         - 57
@@ -207,6 +213,9 @@ Visualization Manager:
       Markers:
         All at once?: false
         Value: true
+        approach_object: true
+        lower_object: true
+        retreat: true
       Name: Motion Planning Tasks
       Robot:
         Fixed Robot Color: 150; 50; 150
@@ -346,7 +355,7 @@ Visualization Manager:
       State Display Time: 0.05 s
       Task Solution Topic: mtc_tutorial/solution
       Tasks:
-        {}
+        place_task: 1
       Trail Step Size: 1
       Value: true
   Enabled: true
@@ -365,7 +374,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.3878222703933716
+      Distance: 2.3023087978363037
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -381,9 +390,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.264797568321228
+      Pitch: 0.8697963953018188
       Target Frame: franko_fr3_link0
-      Yaw: 4.939944744110107
+      Yaw: 5.743125915527344
     Saved: ~
 Window Geometry:
   Displays:
@@ -401,5 +410,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1621
-  X: 249
-  Y: 27
+  X: 277
+  Y: 48

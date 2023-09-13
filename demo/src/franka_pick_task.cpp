@@ -275,7 +275,7 @@ void FrankaPickTask::loadParameters() {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_min_dist", lift_object_min_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_max_dist", lift_object_max_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_surface_offset", place_surface_offset_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_pose1", place_pose_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hold_pose1", place_pose_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_pose", assembly_pose_);
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }

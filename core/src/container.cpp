@@ -572,6 +572,7 @@ void SerialContainerPrivate::validateInterface(const StagePrivate& child, Interf
 	if (required == UNKNOWN)
 		return;  // cannot yet validate
 	InterfaceFlags child_interface = child.interfaceFlags() & mask;
+	ROS_INFO_STREAM_NAMED("container", "required = " << required << " child = " << child_interface);
 	if (required != child_interface) {
 		boost::format desc("%1% interface (%3%) of '%2%' does not match mine (%4%)");
 		desc % (mask == START_IF_MASK ? "start" : "end") % child.name();
