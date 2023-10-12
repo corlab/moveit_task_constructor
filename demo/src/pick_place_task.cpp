@@ -337,9 +337,10 @@ bool PickPlaceTask::init(std::string object_name) {
 	 *               Current State                      *
 	 *                                                  *
 	 ***************************************************/
-	//Stage* initial_state_ptr = nullptr;
+	Stage* initial_state_ptr = nullptr;
 	{
 		auto current_state = std::make_unique<stages::CurrentState>("current state");
+		initial_state_ptr = current_state.get();
 
 		// Verify that object is not attached
 		auto applicability_filter =
@@ -375,22 +376,22 @@ bool PickPlaceTask::init(std::string object_name) {
 	 *               memorise                           *
 	 *                                                  *
 	 ***************************************************/
-	Stage* initial_state_ptr = nullptr;
-	{  // Open Hand
-		auto stage = std::make_unique<stages::MoveRelative>("memorise", sampling_planner);
-		stage->properties().set("marker_ns", "memorise");
-		stage->properties().set("link", hand_frame_);
-		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
-		stage->setMinMaxDistance(0.0, 0.03);
+	// Stage* initial_state_ptr = nullptr;
+	// {  // Open Hand
+	// 	auto stage = std::make_unique<stages::MoveRelative>("memorise", sampling_planner);
+	// 	stage->properties().set("marker_ns", "memorise");
+	// 	stage->properties().set("link", hand_frame_);
+	// 	stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+	// 	stage->setMinMaxDistance(0.0, 0.03);
 
-		// Set hand forward direction
-		geometry_msgs::Vector3Stamped vec;
-		vec.header.frame_id = hand_frame_;
-		vec.vector.z = -0.005;
-		stage->setDirection(vec);
-		initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
-		t.add(std::move(stage));
-	}
+	// 	// Set hand forward direction
+	// 	geometry_msgs::Vector3Stamped vec;
+	// 	vec.header.frame_id = hand_frame_;
+	// 	vec.vector.z = -0.005;
+	// 	stage->setDirection(vec);
+	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
+	// 	t.add(std::move(stage));
+	// }
 
 
 	/****************************************************
