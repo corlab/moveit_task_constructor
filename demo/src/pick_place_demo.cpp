@@ -164,7 +164,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init("objectT" + std::to_string(t_id))) {
+					if (!move_home_task.init("objectT" + std::to_string(t_id), "T")) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";
@@ -185,6 +185,13 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 							res.message = "Grasp failed gripper closed to little or to much.";
 							return true;
 						}
+					} else {
+						ROS_INFO_NAMED(LOGNAME, "Planning failed");
+						ros::waitForShutdown();
+						//return false;
+						res.success = false;
+						res.message = "Planning failed";
+						return true;
 					}
 				} else {
 					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
@@ -252,7 +259,7 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init("objectL" + std::to_string(l_id))) {
+					if (!move_home_task.init("objectL" + std::to_string(l_id), "L")) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";
@@ -334,27 +341,6 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 			hold_task.execute();
 			ROS_INFO_NAMED(LOGNAME, "Execution complete");
 			moveit_task_constructor_demo::spawnPipe(pnh, "assembly_object");
-
-			// ros::ServiceClient switch_controller = n.serviceClient<controller_manager_msgs::SwitchController>("franko/controller_manager/switch_controller");
-
-			// std::vector<std::string> start_controller;
-			// start_controller.push_back("effort_joint_trajectory_controller");
-			// std::vector<std::string> stop_controller;
-			// stop_controller.push_back("position_joint_trajectory_controller");
-			// controller_manager_msgs::SwitchController switch_controller_req;
-			// switch_controller_req.request.start_controllers = start_controller;
-			// switch_controller_req.request.stop_controllers = stop_controller;
-			// switch_controller_req.request.strictness = 1;
-			// switch_controller_req.request.start_asap = false;
-			// ros::service::waitForService("franko/controller_manager/switch_controller", ros::Duration(5));
-			// switch_controller.call(switch_controller_req);
-			// if (switch_controller_req.response.ok) {
-			// 	ROS_INFO_STREAM("Controller switch correctly");
-
-			// } else {
-			// 	ROS_ERROR_STREAM("Error occured trying to switch controller");
-			// 	return 0;
-			// }
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}

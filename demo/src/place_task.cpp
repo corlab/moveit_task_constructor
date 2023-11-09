@@ -34,7 +34,7 @@
    Desc:   A demo to show MoveIt Task Constructor in action
 */
 
-#include <moveit_task_constructor_demo/hold_task.h>
+#include <moveit_task_constructor_demo/place_task.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <geometric_shapes/shape_operations.h>
 #include <iostream>
@@ -43,14 +43,14 @@
 namespace moveit_task_constructor_demo {
 
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
-constexpr char HoldTask::LOGNAME[];
+constexpr char PlaceTask::LOGNAME[];
 
-HoldTask::HoldTask(const std::string& task_name, const std::string& place_name, const ros::NodeHandle& pnh)
+PlaceTask::PlaceTask(const std::string& task_name, const std::string& place_name, const ros::NodeHandle& pnh)
   : pnh_(pnh), task_name_(task_name) {
 	loadParameters(place_name);
 }
 
-void HoldTask::loadParameters(const std::string& place_name) {
+void PlaceTask::loadParameters(const std::string& place_name) {
 	/****************************************************
 	 *                                                  *
 	 *               Load Parameters                    *
@@ -115,17 +115,17 @@ void HoldTask::loadParameters(const std::string& place_name) {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool HoldTask::init() {
+bool PlaceTask::init() {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
 	moveit::planning_interface::PlanningSceneInterface psi;
 	std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = psi.getAttachedObjects();
-	std::string object;
-	ROS_WARN_STREAM_NAMED(LOGNAME, "object size = " << objects.size());
 	std::vector<std::string> ids = {};
-	if (objects.size() > 0) {
-		for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
-			ids.push_back(object.first);
-		}
+	for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
+		ids.push_back(object.first);
+		ROS_INFO_STREAM_NAMED("attached objects", " " << object.first);
+	}
+	std::string object = "";
+	if (ids.size() > 0) {
 		object = ids.at(0);
 	}
 	//const std::string object; // = object_name_;
@@ -173,7 +173,7 @@ bool HoldTask::init() {
 		// Verify that object is not attached
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
-		applicability_filter->setPredicate([](const SolutionBase& s, std::string& comment) {
+		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
 			// if (!s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
 			//     ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is not attatched");
 			// 	comment = "object with id '" + object + "' is not attached";
@@ -184,6 +184,18 @@ bool HoldTask::init() {
 		//initial_state_ptr = current_state.get();  // remember start state for monitoring grasp pose generator
 		t.add(std::move(applicability_filter));
 	}
+
+	// 	/****************************************************
+	//  *                                                  *
+	//  *               memorise                           *
+	//  *                                                  *
+	//  ***************************************************/
+	// Stage* initial_state_ptr = nullptr;
+	// {  // Open Hand
+	// 	auto stage = std::make_unique<stages::CurrentState>("memorise");
+	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
+	// 	t.add(std::move(stage));
+	// }
 
 	/******************************************************
 	 *                                                    *
@@ -209,6 +221,24 @@ bool HoldTask::init() {
 		place->properties().configureInitFrom(Stage::PARENT, { "eef", "hand", "group" });
 
 		/******************************************************
+  ---- *          Lower Object                              *
+		 *****************************************************/
+		{
+			auto stage = std::make_unique<stages::MoveRelative>("lower object", cartesian_planner);
+			stage->properties().set("marker_ns", "lower_object");
+			stage->properties().set("link", hand_frame_);
+			stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+			stage->setMinMaxDistance(.1, .3);
+
+			// Set downward direction
+			geometry_msgs::Vector3Stamped vec;
+			vec.header.frame_id = world_frame_;
+			vec.vector.z = -0.243;
+			stage->setDirection(vec);
+			place->insert(std::move(stage));
+		}
+
+		/******************************************************
   ---- *          Generate Place Pose                       *
 		 *****************************************************/
 		{
@@ -218,20 +248,53 @@ bool HoldTask::init() {
 			stage->properties().set("marker_ns", "place_pose");
 			stage->properties().set("allow_z_flip", false);
 			stage->setObject(object);
+			// stage->setObject(assembly_object);
 
 			// Set target pose
 			geometry_msgs::PoseStamped p;
 			p.header.frame_id = object_reference_frame_;
+			// p.header.frame_id = "panda_link8";
+			// assembly_object_pose: [0.5, 0.3, 0.5, 0, 0, 0]
 			p.pose = place_pose_;
+
+			// bool vary = false;
+			// if (vary) {
+			// 	std::random_device rd; // obtain a random number from hardware
+    		// 	std::mt19937 gen(rd()); // seed the generator
+    		// 	std::uniform_int_distribution<> distr(-0.1, 0.1); // define the range
+
+			// 	x_offset = distr(gen)
+			// 	ROS_WARN_STREAM_NAMED(LOGNAME, "Varying x assembly possition by " << x_offset);
+			// 	p.pose.position.x += x_offset;
+
+			// 	y_offset = distr(gen)
+			// 	ROS_WARN_STREAM_NAMED(LOGNAME, "Varying y assembly possition by " << y_offset);
+			// 	p.pose.position.y += y_offset;
+				
+    		// 	//for(int n=0; n<40; ++n)
+        	// 	//	std::cout << distr(gen) << ' '; // generate numbers
+			// }
+
+
+			//p.pose = assembly_pose_;
+//			p.pose.position.x = 0.5;
+			//p.pose.position.y += object1_dimensions_[0] + (assembly_object_dimensions_[0] / 2) + place_surface_offset_;
 			p.pose.position.y += 0.075 + (assembly_object_dimensions_[0] / 2) + place_surface_offset_ + 0.02; // todo get mesh dim?
-			p.pose.position.z += 0.5 * assembly_object_dimensions_[0];
+//			p.pose.position.z = 0.5;
+			//p.pose.position.z += 0.5 * object_dimensions_[0] + place_surface_offset_;
+			//p.pose.position.z += object1_dimensions_[0] + 0.5 * object1_dimensions_[0] + place_surface_offset_;
+			p.pose.position.z += 0.243 + 0.5 * assembly_object_dimensions_[0];
 			stage->setPose(p);
 			stage->setMonitoredStage(initial_state_ptr);  // hook into successful pick solutions
+			//stage->setMonitoredStage(null);
+			// stage->setMonitoredStage(assembly_stage_ptr);  // hook into successful pick solutions
 
 			// Compute IK
 			auto wrapper = std::make_unique<stages::ComputeIK>("place pose IK", std::move(stage));
 			wrapper->setMaxIKSolutions(2);
+			//wrapper->setIKFrame(grasp_frame_transform_, hand_frame_);
 			wrapper->setIKFrame(assemble_frame_transform_, hand_frame_);
+			//wrapper->setIKFrame(assemble_frame_transform_, "franko_fr3_hand_tcp");
 			wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
 			wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
 			place->insert(std::move(wrapper));
@@ -245,6 +308,66 @@ bool HoldTask::init() {
 			stage->allowCollisions(assembly_object, object, true);
 			place->insert(std::move(stage));
 		}
+
+// 		/******************************************************
+//   ---- *          Open Hand                              *
+// 		 *****************************************************/
+// 		{
+// 			auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
+// 			stage->setGroup(hand_group_name_);
+// 			stage->setGoal(hand_open_pose_);
+// 			place->insert(std::move(stage));
+// 		}
+
+// // 		/******************************************************
+// //  ---- *          Detach Object                             *
+// // 		*****************************************************/
+// // 		{
+// // 			auto stage = std::make_unique<stages::ModifyPlanningScene>("detach object");
+// // 			stage->detachObject(assembly_object, hand_frame_);
+// // 			place->insert(std::move(stage));
+// // 		}
+
+// 		/******************************************************
+//  ---- *          Detach Object                             *
+// 		*****************************************************/
+// 		for (std::string attached_object: ids) (
+// 		{
+// 			auto stage = std::make_unique<stages::ModifyPlanningScene>("detach object " + attached_object);
+// 			stage->detachObject(attached_object, hand_frame_);
+// 			place->insert(std::move(stage));
+// 		}
+// 		);
+
+// 		/******************************************************
+//  ---- *          Forbid collision (hand, object)        *
+// 			*****************************************************/
+// 		{
+// 			auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (hand,object)");
+// 			stage->allowCollisions(assembly_object, *t.getRobotModel()->getJointModelGroup(hand_group_name_), false);
+// 			place->insert(std::move(stage));
+// 		}
+
+// 		/******************************************************
+//   ---- *          Retreat Motion                            *
+// 		 *****************************************************/
+// 		{
+// 			auto stage = std::make_unique<stages::MoveRelative>("retreat after place", cartesian_planner);
+// 			stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+// 			stage->setMinMaxDistance(.1, .3);
+// 			//stage->setIKFrame("franko_fr3_link8");
+// 			stage->setIKFrame(hand_frame_);
+// 			//stage->setIKFrame("panda_hand");
+// 			stage->properties().set("marker_ns", "retreat");
+// 			geometry_msgs::Vector3Stamped vec;
+// 			vec.header.frame_id = hand_frame_;
+// 			// vec.vector.z = -1.0;
+// 			vec.vector.z = -0.25;
+// 			//vec.vector.z = -0.1;
+// 			//vec.vector.x = 0.25;
+// 			stage->setDirection(vec);
+// 			place->insert(std::move(stage));
+// 		}
 
 		// Add place container to task
 		t.add(std::move(place));
@@ -261,14 +384,14 @@ bool HoldTask::init() {
 	return true;
 }
 
-bool HoldTask::plan() {
+bool PlaceTask::plan() {
 	ROS_INFO_NAMED(LOGNAME, "Start searching for task solutions");
 	int max_solutions = pnh_.param<int>("max_solutions", 10);
 
 	return static_cast<bool>(task_->plan(max_solutions));
 }
 
-bool HoldTask::execute() {
+bool PlaceTask::execute() {
 	ROS_INFO_NAMED(LOGNAME, "Executing solution trajectory");
 	moveit_msgs::MoveItErrorCodes execute_result;
 

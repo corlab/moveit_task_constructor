@@ -63,13 +63,13 @@
 namespace moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
-class MoveHomeTask
+class ReleaseTask
 {
 public:
-	MoveHomeTask(const std::string& task_name, const ros::NodeHandle& pnh);
-	~MoveHomeTask() = default;
+	ReleaseTask(const std::string& task_name, const ros::NodeHandle& pnh);
+	~ReleaseTask() = default;
 
-	bool init(std::string object_name, std::string object_type);
+	bool init();
 
 	bool plan();
 
@@ -78,7 +78,7 @@ public:
 private:
 	void loadParameters();
 
-	static constexpr char LOGNAME[]{ "move_home_task" };
+	static constexpr char LOGNAME[]{ "release_task" };
 
 	ros::NodeHandle pnh_;
 

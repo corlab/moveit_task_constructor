@@ -99,8 +99,8 @@ void MoveHomeTask::loadParameters() {
 	// Assembly object
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_name", assembly_object_name_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_dimensions", assembly_object_dimensions_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link_);
-	support_surfaces_ = { surface_link_ };
+	// errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link_);
+	// support_surfaces_ = { surface_link_ };
 
 	// Pick/Place metrics
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_min_dist", approach_object_min_dist_);
@@ -113,9 +113,10 @@ void MoveHomeTask::loadParameters() {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool MoveHomeTask::init(std::string object_name) {
+bool MoveHomeTask::init(std::string object_name, std::string object_type) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
 	const std::string object = object_name;
+	ROS_INFO_STREAM_NAMED(LOGNAME, "holding object '" << object_name << "'");
 	// const std::string objectT = objectT_name_;
 	// const std::string objectL = objectL_name_;
 	// const std::string objectI = objectI_name_;
@@ -146,6 +147,9 @@ bool MoveHomeTask::init(std::string object_name) {
 	t.setProperty("hand", hand_group_name_);
 	t.setProperty("hand_grasping_frame", hand_frame_);
 	t.setProperty("ik_frame", hand_frame_);
+
+	//support_surfaces_ = { "magazine" + object_type };
+	support_surfaces_.push_back("magazine" + object_type);
 
 	/****************************************************
 	 *                                                  *
@@ -185,7 +189,26 @@ bool MoveHomeTask::init(std::string object_name) {
 	***************************************************/
 	{
 		auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,support)");
+		for (auto &&i : support_surfaces_)
+		{
+			ROS_INFO_STREAM_NAMED(LOGNAME, "support surface: '" << i << "'");	
+		}
 		stage->allowCollisions({ object }, support_surfaces_, true);
+		t.add(std::move(stage));
+	}
+
+	/****************************************************
+ 	*               Allow collision (gripper support)   *
+	***************************************************/
+	{
+		auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (gripper,support)");
+		for (auto &&i : support_surfaces_)
+		{
+			ROS_INFO_STREAM_NAMED(LOGNAME, "support surface: '" << i << "'");	
+		}
+		stage->allowCollisions(
+			    support_surfaces_, t.getRobotModel()->getJointModelGroup(hand_group_name_)->getLinkModelNamesWithCollisionGeometry(),
+			    true);
 		t.add(std::move(stage));
 	}
 
@@ -214,6 +237,17 @@ bool MoveHomeTask::init(std::string object_name) {
 	{
 		auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (object,support)");
 		stage->allowCollisions({ object }, support_surfaces_, false);
+		t.add(std::move(stage));
+	}
+
+	/****************************************************
+ 	*               Forbid collision (gripper support)   *
+	***************************************************/
+	{
+		auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (gripper,support)");
+		stage->allowCollisions(
+			    support_surfaces_, t.getRobotModel()->getJointModelGroup(hand_group_name_)->getLinkModelNamesWithCollisionGeometry(),
+			    false);
 		t.add(std::move(stage));
 	}
 

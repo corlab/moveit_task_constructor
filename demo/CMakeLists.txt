@@ -19,21 +19,17 @@ catkin_package(
 )
 
 add_library(${PROJECT_NAME}_pick_place_task src/pick_place_task.cpp)
-add_library(${PROJECT_NAME}_franka_pick_task src/franka_pick_task.cpp)
 add_library(${PROJECT_NAME}_move_home_task src/move_home_task.cpp)
 add_library(${PROJECT_NAME}_hold_task src/hold_task.cpp)
-target_link_libraries(${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_franka_pick_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_franka_pick_task ${PROJECT_NAME}_move_home_task ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task ${catkin_LIBRARIES})
 target_include_directories(${PROJECT_NAME}_pick_place_task PUBLIC include)
-target_include_directories(${PROJECT_NAME}_franka_pick_task PUBLIC include)
 target_include_directories(${PROJECT_NAME}_move_home_task PUBLIC include)
 target_include_directories(${PROJECT_NAME}_hold_task PUBLIC include)
 target_include_directories(${PROJECT_NAME}_pick_place_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME}_franka_pick_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME}_move_home_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME}_hold_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-add_dependencies(${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_franka_pick_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-install(TARGETS ${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_franka_pick_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task
+add_dependencies(${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+install(TARGETS ${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -61,9 +57,6 @@ demo(fallbacks_move_to)
 
 demo(pick_place_demo)
 target_link_libraries(${PROJECT_NAME}_pick_place_demo ${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_hold_task)
-
-demo(franka_pick_demo)
-target_link_libraries(${PROJECT_NAME}_franka_pick_demo ${PROJECT_NAME}_franka_pick_task ${PROJECT_NAME}_move_home_task)
 
 install(DIRECTORY launch config
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

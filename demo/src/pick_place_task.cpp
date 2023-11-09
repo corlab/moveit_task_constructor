@@ -77,21 +77,21 @@ moveit_msgs::CollisionObject createTable(const ros::NodeHandle& pnh) {
 	return object;
 }
 
-moveit_msgs::CollisionObject createMagazine(const ros::NodeHandle& pnh) {
-	std::string magazine_name, table_reference_frame, magazine_file;
+moveit_msgs::CollisionObject createMagazine(const ros::NodeHandle& pnh, const std::string& type) {
+	std::string magazine_name, magazine_reference_frame, magazine_file;
 	//std::vector<double> magazine_dimensions;
 	geometry_msgs::Pose pose;
 	std::size_t errors = 0;
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_name", magazine_name);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_reference_frame", table_reference_frame);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_reference_frame", magazine_reference_frame);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_dimensions", magazine_dimensions);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_file", magazine_file);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_pose", pose);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_pose" + type, pose);
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 
 	moveit_msgs::CollisionObject object;
-	object.id = magazine_name;
-	object.header.frame_id = table_reference_frame;
+	object.id = magazine_name + type;
+	object.header.frame_id = magazine_reference_frame;
 	Eigen::Vector3d scale_vec(0.001, 0.001, 0.001);
 	shapes::Mesh* mesh = shapes::createMeshFromResource("file:" + magazine_file, scale_vec);
 	ROS_INFO("mesh loaded");
@@ -153,7 +153,7 @@ moveit_msgs::AttachedCollisionObject createAssemblyObject(const ros::NodeHandle&
 	std::string link_name;
 	std::size_t error = 0;
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_name", assembly_object_name);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_reference_frame", assembly_object_reference_frame);
+	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", assembly_object_reference_frame);
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_dimensions", assembly_object_dimensions);
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_pose", assembly_pose);
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", link_name);
@@ -208,8 +208,10 @@ void setupDemoScene(ros::NodeHandle& pnh) {
 	clear_planning_scene(psi);
 	if (pnh.param("spawn_table", true))
 	   spawnObject(psi, createTable(pnh));
-	if (pnh.param("spawn_magazine", true))
-	   spawnObject(psi, createMagazine(pnh));
+	if (pnh.param("spawn_magazines", true)) {
+	   spawnObject(psi, createMagazine(pnh, "T"));
+	   spawnObject(psi, createMagazine(pnh, "L"));
+	}
 	spawnObject(psi, createObject(pnh, "objectT1"));
 	spawnObject(psi, createObject(pnh, "objectT2"));
 	spawnObject(psi, createObject(pnh, "objectT3"));
@@ -367,28 +369,6 @@ bool PickPlaceTask::init(std::string object_name) {
 	// 	auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
 	// 	stage->setGroup(hand_group_name_);
 	// 	stage->setGoal(hand_open_pose_);
-	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
-	// 	t.add(std::move(stage));
-	// }
-
-	/****************************************************
-	 *                                                  *
-	 *               memorise                           *
-	 *                                                  *
-	 ***************************************************/
-	// Stage* initial_state_ptr = nullptr;
-	// {  // Open Hand
-	// 	auto stage = std::make_unique<stages::MoveRelative>("memorise", sampling_planner);
-	// 	stage->properties().set("marker_ns", "memorise");
-	// 	stage->properties().set("link", hand_frame_);
-	// 	stage->properties().configureInitFrom(Stage::PARENT, { "group" });
-	// 	stage->setMinMaxDistance(0.0, 0.03);
-
-	// 	// Set hand forward direction
-	// 	geometry_msgs::Vector3Stamped vec;
-	// 	vec.header.frame_id = hand_frame_;
-	// 	vec.vector.z = -0.005;
-	// 	stage->setDirection(vec);
 	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
 	// 	t.add(std::move(stage));
 	// }

@@ -191,9 +191,11 @@ bool MoveRelative::compute(const InterfaceState& state, planning_scene::Planning
 	bool success = false;
 
 	if (getJointStateFromOffset(direction, dir, jmg, scene->getCurrentStateNonConst())) {
+		std::cout << "getJointStateFromOffset is true " << std::endl;
 		// plan to joint-space target
 		success = planner_->plan(state.scene(), scene, jmg, timeout, robot_trajectory, path_constraints);
 	} else {
+		std::cout << "getJointStateFromOffset is false. Cartesian targets require an IK reference frame " << std::endl;
 		// Cartesian targets require an IK reference frame
 		const moveit::core::LinkModel* link;
 		Eigen::Isometry3d ik_pose_world;
@@ -294,6 +296,7 @@ bool MoveRelative::compute(const InterfaceState& state, planning_scene::Planning
 
 		// min_distance reached?
 		if (min_distance > 0.0) {
+			std::cout << "distance = " << distance << std::endl;
 			success = distance >= min_distance;
 			if (!success) {
 				char msg[100];

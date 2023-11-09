@@ -63,26 +63,22 @@
 namespace moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
-// prepare a demo environment from ROS parameters under pnh
-void resetDemoScene(ros::NodeHandle& pnh);
-void spawnPipe(ros::NodeHandle& pnh, const std::string& name);
-
-class FrankaPickTask
+class PlaceTask
 {
 public:
-	FrankaPickTask(const std::string& task_name, const ros::NodeHandle& pnh);
-	~FrankaPickTask() = default;
+	PlaceTask(const std::string& task_name, const std::string& place_name, const ros::NodeHandle& pnh);
+	~PlaceTask() = default;
 
-	bool init(std::string object_name);
+	bool init();
 
 	bool plan();
 
 	bool execute();
 
 private:
-	void loadParameters();
+	void loadParameters(const std::string& place_name);
 
-	static constexpr char LOGNAME[]{ "franka_pick_task" };
+	static constexpr char LOGNAME[]{ "place_task" };
 
 	ros::NodeHandle pnh_;
 
@@ -99,12 +95,23 @@ private:
 	std::vector<std::string> support_surfaces_;
 	std::string object_reference_frame_;
 	std::string surface_link_;
-	std::string objectT_name_;
-	std::string objectL_name_;
+	std::string objectT1_name_;
+	std::string objectT2_name_;
+	std::string objectT3_name_;
+	std::string objectT4_name_;
+	std::string objectL1_name_;
+	std::string objectL2_name_;
+	std::string objectL3_name_;
+	std::string objectL4_name_;
 	std::string objectI_name_;
-	std::string objectT_file_;
-	std::string objectL_file_;
-	std::string objectI_file_;
+	std::string objectT1_file_;
+	std::string objectT2_file_;
+	std::string objectT3_file_;
+	std::string objectT4_file_;
+	std::string objectL1_file_;
+	std::string objectL2_file_;
+	std::string objectL3_file_;
+	std::string objectL4_file_;
 	std::string assembly_object_name_;
 	std::string world_frame_;
 	std::vector<double> objectT_dimensions_;
