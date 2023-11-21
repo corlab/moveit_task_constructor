@@ -147,15 +147,17 @@ moveit_msgs::CollisionObject createObject(const ros::NodeHandle& pnh, const std:
 }
 
 moveit_msgs::AttachedCollisionObject createAssemblyObject(const ros::NodeHandle& pnh, const std::string& name) {
-	std::string assembly_object_name, assembly_object_reference_frame;
+	ROS_INFO_STREAM_NAMED(LOGNAME, "spawn Assembly Object " + name);
+	//std::string assembly_object_name;
+	std::string assembly_object_reference_frame;
 	std::vector<double> assembly_object_dimensions;
 	geometry_msgs::Pose assembly_pose;
 	std::string link_name;
 	std::size_t error = 0;
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_name", assembly_object_name);
+	//error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_name", assembly_object_name);
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", assembly_object_reference_frame);
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_dimensions", assembly_object_dimensions);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_pose", assembly_pose);
+	error += !rosparam_shortcuts::get(LOGNAME, pnh, name + "_pose", assembly_pose);
 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", link_name);
 	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
 

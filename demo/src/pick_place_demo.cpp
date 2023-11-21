@@ -346,7 +346,7 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		//ros::waitForShutdown();
+		ros::waitForShutdown();
 		res.success = false;
 		res.message = "not holding.";
 		return true;	
@@ -381,7 +381,7 @@ bool hold1(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		//ros::waitForShutdown();
+		ros::waitForShutdown();
 		res.success = false;
 		res.message = "not holding";
 		return true;
@@ -410,13 +410,13 @@ bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 			//getchar();
 			hold_task.execute();
 			ROS_INFO_NAMED(LOGNAME, "Execution complete");
-			moveit_task_constructor_demo::spawnPipe(pnh, "assembly_object1");
+			moveit_task_constructor_demo::spawnPipe(pnh, "assembly_object2");
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		//ros::waitForShutdown();
+		ros::waitForShutdown();
 		res.success = false;
 		res.message = "not holding.";
 		return true;
