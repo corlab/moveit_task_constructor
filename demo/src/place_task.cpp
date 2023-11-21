@@ -115,19 +115,23 @@ void PlaceTask::loadParameters(const std::string& place_name) {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool PlaceTask::init() {
+bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_objects) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	moveit::planning_interface::PlanningSceneInterface psi;
-	std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = psi.getAttachedObjects();
-	std::vector<std::string> ids = {};
-	for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
-		ids.push_back(object.first);
-		ROS_INFO_STREAM_NAMED("attached objects", " " << object.first);
-	}
-	std::string object = "";
-	if (ids.size() > 0) {
-		object = ids.at(0);
-	}
+	std::vector<std::string> objects = std::get<1>(picked_objects);
+	std::string object_name = std::get<0>(picked_objects);
+	ROS_INFO_STREAM_NAMED(LOGNAME, "placing object with root id '" << object_name);
+
+	// moveit::planning_interface::PlanningSceneInterface psi;
+	// std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = psi.getAttachedObjects();
+	// std::vector<std::string> ids = {};
+	// for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
+	// 	ids.push_back(object.first);
+	// 	ROS_INFO_STREAM_NAMED("attached objects", " " << object.first);
+	// }
+	// std::string object = "";
+	// if (ids.size() > 0) {
+	// 	object = ids.at(0);
+	// }
 	//const std::string object; // = object_name_;
 	// const std::string objectT = objectT_name_;
 	// const std::string objectL = objectL_name_;
@@ -173,7 +177,7 @@ bool PlaceTask::init() {
 		// Verify that object is not attached
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
-		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
+		applicability_filter->setPredicate([objects](const SolutionBase& s, std::string& comment) {
 			// if (!s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
 			//     ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is not attatched");
 			// 	comment = "object with id '" + object + "' is not attached";

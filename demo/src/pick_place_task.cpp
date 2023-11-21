@@ -302,13 +302,11 @@ void PickPlaceTask::loadParameters() {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool PickPlaceTask::init(std::string object_name) {
+bool PickPlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_objects) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	const std::vector<std::string> object = {};
-	if (object_name == "assembledT") {
-		object.push_back{"object"}
-
-	}
+	std::vector<std::string> objects = std::get<1>(picked_objects);
+	std::string object_name = std::get<0>(picked_objects);
+	ROS_INFO_STREAM_NAMED(LOGNAME, "picking object with id '" << object_name);
 	// const std::string objectT = objectT_name_;
 	// const std::string objectL = objectL_name_;
 	// const std::string objectI = objectI_name_;
@@ -353,8 +351,8 @@ bool PickPlaceTask::init(std::string object_name) {
 		// Verify that object is not attached
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
-		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
-			std::vector<std::string> tmp_objects = object;
+		applicability_filter->setPredicate([objects](const SolutionBase& s, std::string& comment) {
+			std::vector<std::string> tmp_objects = objects;
 			for (size_t i = 0; i < tmp_objects.size(); i++)
 			{
 				ROS_ERROR_STREAM_NAMED(LOGNAME, "got object with id '" << i);
@@ -375,7 +373,7 @@ bool PickPlaceTask::init(std::string object_name) {
 				for (size_t i = 0; i < tmp_objects.size(); i++)
 				{
 					if (attached_status[i]) {
-						object_ids += object_ids + object[i] + ", ";
+						object_ids += object_ids + objects[i] + ", ";
 					}
 				}
 				
@@ -442,7 +440,7 @@ bool PickPlaceTask::init(std::string object_name) {
 			stage->properties().set("marker_ns", "grasp_pose");
 			stage->setPreGraspPose(hand_open_pose_);
 			//stage->setObject(objectT);
-			stage->setObject(object);
+			stage->setObject(object_name);
 			//stage->setAngleDelta(M_PI / 6);
 			stage->setAngleDelta(M_PI / 60);
 			stage->setMonitoredStage(initial_state_ptr);  // hook into successful initial-phase solutions
@@ -465,7 +463,7 @@ bool PickPlaceTask::init(std::string object_name) {
 		{
 			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (hand,object)");
 			stage->allowCollisions(
-			    object, t.getRobotModel()->getJointModelGroup(hand_group_name_)->getLinkModelNamesWithCollisionGeometry(),
+			    object_name, t.getRobotModel()->getJointModelGroup(hand_group_name_)->getLinkModelNamesWithCollisionGeometry(),
 			    true);
 			grasp->insert(std::move(stage));
 		}

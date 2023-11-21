@@ -584,8 +584,11 @@ bool pickAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response
 			break;
 		}
 	}
-	if (object_name == "" || object_name == NULL) {
-		ROS_ERROR_STREAM_NAMED(LOGNAME, po.first << " has value " << po.second.at(0));
+	if (object_name == "" || object_name.empty()) {
+		ROS_ERROR_STREAM_NAMED(LOGNAME, "World doesn't contain an assembled T-group to pick");
+		res.success = false;
+		res.message = "World doesn't contain an assembled T-group to pick";
+		return true;
 	}
 
 	// Construct and run pick/place task
