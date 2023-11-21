@@ -64,8 +64,8 @@ namespace moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
 // prepare a demo environment from ROS parameters under pnh
-void setupDemoScene(ros::NodeHandle& pnh);
-void spawnPipe(ros::NodeHandle& pnh, const std::string& name);
+// void setupDemoScene(ros::NodeHandle& pnh);
+// void spawnPipe(ros::NodeHandle& pnh, const std::string& name);
 
 class PickPlaceTask
 {

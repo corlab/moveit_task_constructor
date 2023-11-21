@@ -43,194 +43,194 @@ namespace moveit_task_constructor_demo {
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 constexpr char PickPlaceTask::LOGNAME[];
 
-void spawnObject(moveit::planning_interface::PlanningSceneInterface& psi, const moveit_msgs::CollisionObject& object) {
-	if (!psi.applyCollisionObject(object)) {
-		throw std::runtime_error("Failed to spawn object: " + object.id);
-	}
-}
+// void spawnObject(moveit::planning_interface::PlanningSceneInterface& psi, const moveit_msgs::CollisionObject& object) {
+// 	if (!psi.applyCollisionObject(object)) {
+// 		throw std::runtime_error("Failed to spawn object: " + object.id);
+// 	}
+// }
 
-void spawnAttatchedObject(moveit::planning_interface::PlanningSceneInterface& psi, const moveit_msgs::AttachedCollisionObject& object) {
-	if (!psi.applyAttachedCollisionObject(object)) {
-		throw std::runtime_error("Failed to spawn attatched object: " + object.object.id);
-	}
-}
+// void spawnAttatchedObject(moveit::planning_interface::PlanningSceneInterface& psi, const moveit_msgs::AttachedCollisionObject& object) {
+// 	if (!psi.applyAttachedCollisionObject(object)) {
+// 		throw std::runtime_error("Failed to spawn attatched object: " + object.object.id);
+// 	}
+// }
 
-moveit_msgs::CollisionObject createTable(const ros::NodeHandle& pnh) {
-	std::string table_name, table_reference_frame;
-	std::vector<double> table_dimensions;
-	geometry_msgs::Pose pose;
-	std::size_t errors = 0;
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_name", table_name);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_reference_frame", table_reference_frame);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_dimensions", table_dimensions);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_pose", pose);
-	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
+// moveit_msgs::CollisionObject createTable(const ros::NodeHandle& pnh) {
+// 	std::string table_name, table_reference_frame;
+// 	std::vector<double> table_dimensions;
+// 	geometry_msgs::Pose pose;
+// 	std::size_t errors = 0;
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_name", table_name);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_reference_frame", table_reference_frame);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_dimensions", table_dimensions);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "table_pose", pose);
+// 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 
-	moveit_msgs::CollisionObject object;
-	object.id = table_name;
-	object.header.frame_id = table_reference_frame;
-	object.primitives.resize(1);
-	object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-	object.primitives[0].dimensions = table_dimensions;
-	pose.position.z -= 0.5 * table_dimensions[2];  // align surface with world
-	object.primitive_poses.push_back(pose);
-	return object;
-}
+// 	moveit_msgs::CollisionObject object;
+// 	object.id = table_name;
+// 	object.header.frame_id = table_reference_frame;
+// 	object.primitives.resize(1);
+// 	object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+// 	object.primitives[0].dimensions = table_dimensions;
+// 	pose.position.z -= 0.5 * table_dimensions[2];  // align surface with world
+// 	object.primitive_poses.push_back(pose);
+// 	return object;
+// }
 
-moveit_msgs::CollisionObject createMagazine(const ros::NodeHandle& pnh, const std::string& type) {
-	std::string magazine_name, magazine_reference_frame, magazine_file;
-	//std::vector<double> magazine_dimensions;
-	geometry_msgs::Pose pose;
-	std::size_t errors = 0;
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_name", magazine_name);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_reference_frame", magazine_reference_frame);
-	//errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_dimensions", magazine_dimensions);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_file", magazine_file);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_pose" + type, pose);
-	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
+// moveit_msgs::CollisionObject createMagazine(const ros::NodeHandle& pnh, const std::string& type) {
+// 	std::string magazine_name, magazine_reference_frame, magazine_file;
+// 	//std::vector<double> magazine_dimensions;
+// 	geometry_msgs::Pose pose;
+// 	std::size_t errors = 0;
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_name", magazine_name);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_reference_frame", magazine_reference_frame);
+// 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_dimensions", magazine_dimensions);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_file", magazine_file);
+// 	errors += !rosparam_shortcuts::get(LOGNAME, pnh, "magazine_pose" + type, pose);
+// 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 
-	moveit_msgs::CollisionObject object;
-	object.id = magazine_name + type;
-	object.header.frame_id = magazine_reference_frame;
-	Eigen::Vector3d scale_vec(0.001, 0.001, 0.001);
-	shapes::Mesh* mesh = shapes::createMeshFromResource("file:" + magazine_file, scale_vec);
-	ROS_INFO("mesh loaded");
-	shape_msgs::Mesh obj_mesh;
-	shapes::ShapeMsg mesh_msg;  
-	shapes::constructMsgFromShape(mesh, mesh_msg);    
-	obj_mesh = boost::get<shape_msgs::Mesh>(mesh_msg);  
-	object.meshes.resize(1);
-	object.mesh_poses.resize(1);
-	object.meshes[0] = obj_mesh;
-	// object.primitives.resize(1);
-	// object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-	// object.primitives[0].dimensions = magazine_dimensions;
-	// pose.position.z -= 0.5 * magazine_dimensions[2];  // align surface with world
-	// object.primitive_poses.push_back(pose);
-	object.mesh_poses[0] = pose;
-	return object;
-}
+// 	moveit_msgs::CollisionObject object;
+// 	object.id = magazine_name + type;
+// 	object.header.frame_id = magazine_reference_frame;
+// 	Eigen::Vector3d scale_vec(0.001, 0.001, 0.001);
+// 	shapes::Mesh* mesh = shapes::createMeshFromResource("file:" + magazine_file, scale_vec);
+// 	ROS_INFO("mesh loaded");
+// 	shape_msgs::Mesh obj_mesh;
+// 	shapes::ShapeMsg mesh_msg;  
+// 	shapes::constructMsgFromShape(mesh, mesh_msg);    
+// 	obj_mesh = boost::get<shape_msgs::Mesh>(mesh_msg);  
+// 	object.meshes.resize(1);
+// 	object.mesh_poses.resize(1);
+// 	object.meshes[0] = obj_mesh;
+// 	// object.primitives.resize(1);
+// 	// object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+// 	// object.primitives[0].dimensions = magazine_dimensions;
+// 	// pose.position.z -= 0.5 * magazine_dimensions[2];  // align surface with world
+// 	// object.primitive_poses.push_back(pose);
+// 	object.mesh_poses[0] = pose;
+// 	return object;
+// }
 
-moveit_msgs::CollisionObject createObject(const ros::NodeHandle& pnh, const std::string object_id) {
-	std::string object_name, object_reference_frame, object_file;
-	//std::vector<double> object_dimensions;
-	geometry_msgs::Pose pose;
-	std::size_t error = 0;
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_name", object_name);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_reference_frame", object_reference_frame);
-	//error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_dimensions", object_dimensions);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_file", object_file);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_pose", pose);
-	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
+// moveit_msgs::CollisionObject createObject(const ros::NodeHandle& pnh, const std::string object_id) {
+// 	std::string object_name, object_reference_frame, object_file;
+// 	//std::vector<double> object_dimensions;
+// 	geometry_msgs::Pose pose;
+// 	std::size_t error = 0;
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_name", object_name);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_reference_frame", object_reference_frame);
+// 	//error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_dimensions", object_dimensions);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_file", object_file);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, object_id + "_pose", pose);
+// 	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
 
-	moveit_msgs::CollisionObject object;
-	object.id = object_name;
-	object.header.frame_id = object_reference_frame;
-	Eigen::Vector3d scale_vec(0.001, 0.001, 0.001);
-	shapes::Mesh* mesh = shapes::createMeshFromResource("file:" + object_file, scale_vec);
-	//mesh->scaleAndPadd(0.001,0);
-	ROS_INFO("mesh loaded");
-	shape_msgs::Mesh obj_mesh;
-	shapes::ShapeMsg mesh_msg;  
-	shapes::constructMsgFromShape(mesh, mesh_msg);    
-	obj_mesh = boost::get<shape_msgs::Mesh>(mesh_msg);  
-	object.meshes.resize(1);
-	object.mesh_poses.resize(1);
-	object.meshes[0] = obj_mesh;
-	//object.primitives.resize(1);
-	//object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-	//object.primitives[0].dimensions = object_dimensions;
-	//pose.position.z += 0.5 * object_dimensions[0];
-	//object.primitive_poses.push_back(pose);
-	object.mesh_poses[0] = pose;
-	return object;
-}
+// 	moveit_msgs::CollisionObject object;
+// 	object.id = object_name;
+// 	object.header.frame_id = object_reference_frame;
+// 	Eigen::Vector3d scale_vec(0.001, 0.001, 0.001);
+// 	shapes::Mesh* mesh = shapes::createMeshFromResource("file:" + object_file, scale_vec);
+// 	//mesh->scaleAndPadd(0.001,0);
+// 	ROS_INFO("mesh loaded");
+// 	shape_msgs::Mesh obj_mesh;
+// 	shapes::ShapeMsg mesh_msg;  
+// 	shapes::constructMsgFromShape(mesh, mesh_msg);    
+// 	obj_mesh = boost::get<shape_msgs::Mesh>(mesh_msg);  
+// 	object.meshes.resize(1);
+// 	object.mesh_poses.resize(1);
+// 	object.meshes[0] = obj_mesh;
+// 	//object.primitives.resize(1);
+// 	//object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+// 	//object.primitives[0].dimensions = object_dimensions;
+// 	//pose.position.z += 0.5 * object_dimensions[0];
+// 	//object.primitive_poses.push_back(pose);
+// 	object.mesh_poses[0] = pose;
+// 	return object;
+// }
 
-moveit_msgs::AttachedCollisionObject createAssemblyObject(const ros::NodeHandle& pnh, const std::string& name) {
-	ROS_INFO_STREAM_NAMED(LOGNAME, "spawn Assembly Object " + name);
-	//std::string assembly_object_name;
-	std::string assembly_object_reference_frame;
-	std::vector<double> assembly_object_dimensions;
-	geometry_msgs::Pose assembly_pose;
-	std::string link_name;
-	std::size_t error = 0;
-	//error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_name", assembly_object_name);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", assembly_object_reference_frame);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_dimensions", assembly_object_dimensions);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, name + "_pose", assembly_pose);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", link_name);
-	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
+// moveit_msgs::AttachedCollisionObject createAssemblyObject(const ros::NodeHandle& pnh, const std::string& name) {
+// 	ROS_INFO_STREAM_NAMED(LOGNAME, "spawn Assembly Object " + name);
+// 	//std::string assembly_object_name;
+// 	std::string assembly_object_reference_frame;
+// 	std::vector<double> assembly_object_dimensions;
+// 	geometry_msgs::Pose assembly_pose;
+// 	std::string link_name;
+// 	std::size_t error = 0;
+// 	//error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_name", assembly_object_name);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", assembly_object_reference_frame);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "assembly_object_dimensions", assembly_object_dimensions);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, name + "_pose", assembly_pose);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "hand_frame", link_name);
+// 	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
 
-	moveit_msgs::AttachedCollisionObject attatched_object;
-	//attatched_object.object.id = assembly_object_name;
-	attatched_object.object.id = name;
-	attatched_object.object.header.frame_id = assembly_object_reference_frame;
-	attatched_object.link_name = link_name;
-	attatched_object.object.primitives.resize(1);
-	attatched_object.object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-	attatched_object.object.primitives[0].dimensions = assembly_object_dimensions;
-	assembly_pose.position.z += 0.5 * assembly_object_dimensions[0];
-	attatched_object.object.primitive_poses.push_back(assembly_pose);
-	return attatched_object;
-}
+// 	moveit_msgs::AttachedCollisionObject attatched_object;
+// 	//attatched_object.object.id = assembly_object_name;
+// 	attatched_object.object.id = name;
+// 	attatched_object.object.header.frame_id = assembly_object_reference_frame;
+// 	attatched_object.link_name = link_name;
+// 	attatched_object.object.primitives.resize(1);
+// 	attatched_object.object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+// 	attatched_object.object.primitives[0].dimensions = assembly_object_dimensions;
+// 	assembly_pose.position.z += 0.5 * assembly_object_dimensions[0];
+// 	attatched_object.object.primitive_poses.push_back(assembly_pose);
+// 	return attatched_object;
+// }
 
-void detatch_objects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface) {
-	std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = planning_scene_interface.getAttachedObjects();
-	ROS_INFO_STREAM_NAMED("detatch objects", "got all known attached objects: " << objects.size());
-	std::vector<std::string> ids = {};
-	for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
-		moveit_msgs::AttachedCollisionObject detatch_object = object.second;
-		detatch_object.object.operation = detatch_object.object.REMOVE;
-		planning_scene_interface.applyAttachedCollisionObject(detatch_object);
-	}
-	std::map<std::string, moveit_msgs::AttachedCollisionObject> remaining_objects = planning_scene_interface.getAttachedObjects();
-	ROS_DEBUG_STREAM_NAMED("detatch objects", "got all known attached objects after clearing: " << remaining_objects.size());
-}
+// void detatch_objects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface) {
+// 	std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = planning_scene_interface.getAttachedObjects();
+// 	ROS_INFO_STREAM_NAMED("detatch objects", "got all known attached objects: " << objects.size());
+// 	std::vector<std::string> ids = {};
+// 	for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
+// 		moveit_msgs::AttachedCollisionObject detatch_object = object.second;
+// 		detatch_object.object.operation = detatch_object.object.REMOVE;
+// 		planning_scene_interface.applyAttachedCollisionObject(detatch_object);
+// 	}
+// 	std::map<std::string, moveit_msgs::AttachedCollisionObject> remaining_objects = planning_scene_interface.getAttachedObjects();
+// 	ROS_DEBUG_STREAM_NAMED("detatch objects", "got all known attached objects after clearing: " << remaining_objects.size());
+// }
 
 
-void clear_planning_scene(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface) {
-	std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface.getObjects();
-	ROS_INFO_STREAM_NAMED("clear planning scene", "got all known objects: " << objects.size());
-	std::vector<std::string> ids = {};
-	for (std::pair<std::string, moveit_msgs::CollisionObject> object : objects) {
-		moveit_msgs::CollisionObject remove_object = object.second;
-		remove_object.operation = remove_object.REMOVE;
-		planning_scene_interface.applyCollisionObject(remove_object);
-	}
-	std::map<std::string, moveit_msgs::CollisionObject> remaining_objects = planning_scene_interface.getObjects();
-	ROS_INFO_STREAM_NAMED("clear planning scene", "got all known objects after clearing: " << remaining_objects.size());
-}
+// void clear_planning_scene(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface) {
+// 	std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface.getObjects();
+// 	ROS_INFO_STREAM_NAMED("clear planning scene", "got all known objects: " << objects.size());
+// 	std::vector<std::string> ids = {};
+// 	for (std::pair<std::string, moveit_msgs::CollisionObject> object : objects) {
+// 		moveit_msgs::CollisionObject remove_object = object.second;
+// 		remove_object.operation = remove_object.REMOVE;
+// 		planning_scene_interface.applyCollisionObject(remove_object);
+// 	}
+// 	std::map<std::string, moveit_msgs::CollisionObject> remaining_objects = planning_scene_interface.getObjects();
+// 	ROS_INFO_STREAM_NAMED("clear planning scene", "got all known objects after clearing: " << remaining_objects.size());
+// }
 
-void setupDemoScene(ros::NodeHandle& pnh) {
-	// Add table and object to planning scene
-	ros::Duration(1.0).sleep();  // Wait for ApplyPlanningScene service
-	moveit::planning_interface::PlanningSceneInterface psi;
-	//addCollisionObjects(psi);
-	detatch_objects(psi);
-	clear_planning_scene(psi);
-	if (pnh.param("spawn_table", true))
-	   spawnObject(psi, createTable(pnh));
-	if (pnh.param("spawn_magazines", true)) {
-	   spawnObject(psi, createMagazine(pnh, "T"));
-	   spawnObject(psi, createMagazine(pnh, "L"));
-	}
-	spawnObject(psi, createObject(pnh, "objectT1"));
-	spawnObject(psi, createObject(pnh, "objectT2"));
-	spawnObject(psi, createObject(pnh, "objectT3"));
-	spawnObject(psi, createObject(pnh, "objectT4"));
-	spawnObject(psi, createObject(pnh, "objectL1"));
-	spawnObject(psi, createObject(pnh, "objectL2"));
-	spawnObject(psi, createObject(pnh, "objectL3"));
-	spawnObject(psi, createObject(pnh, "objectL4"));
-	//spawnObject(psi, createObject(pnh, "objectI"));
-	//spawnObject(psi, createAssemblyObject(pnh));
-}
+// void setupDemoScene(ros::NodeHandle& pnh) {
+// 	// Add table and object to planning scene
+// 	ros::Duration(1.0).sleep();  // Wait for ApplyPlanningScene service
+// 	moveit::planning_interface::PlanningSceneInterface psi;
+// 	//addCollisionObjects(psi);
+// 	detatch_objects(psi);
+// 	clear_planning_scene(psi);
+// 	if (pnh.param("spawn_table", true))
+// 	   spawnObject(psi, createTable(pnh));
+// 	if (pnh.param("spawn_magazines", true)) {
+// 	   spawnObject(psi, createMagazine(pnh, "T"));
+// 	   spawnObject(psi, createMagazine(pnh, "L"));
+// 	}
+// 	spawnObject(psi, createObject(pnh, "objectT1"));
+// 	spawnObject(psi, createObject(pnh, "objectT2"));
+// 	spawnObject(psi, createObject(pnh, "objectT3"));
+// 	spawnObject(psi, createObject(pnh, "objectT4"));
+// 	spawnObject(psi, createObject(pnh, "objectL1"));
+// 	spawnObject(psi, createObject(pnh, "objectL2"));
+// 	spawnObject(psi, createObject(pnh, "objectL3"));
+// 	spawnObject(psi, createObject(pnh, "objectL4"));
+// 	//spawnObject(psi, createObject(pnh, "objectI"));
+// 	//spawnObject(psi, createAssemblyObject(pnh));
+// }
 
-void spawnPipe(ros::NodeHandle& pnh, const std::string& name) {
-	ros::Duration(1.0).sleep();
-	moveit::planning_interface::PlanningSceneInterface psi;
-	spawnAttatchedObject(psi, createAssemblyObject(pnh, name));
-}
+// void spawnPipe(ros::NodeHandle& pnh, const std::string& name) {
+// 	ros::Duration(1.0).sleep();
+// 	moveit::planning_interface::PlanningSceneInterface psi;
+// 	spawnAttatchedObject(psi, createAssemblyObject(pnh, name));
+// }
 
 PickPlaceTask::PickPlaceTask(const std::string& task_name, const ros::NodeHandle& pnh)
   : pnh_(pnh), task_name_(task_name) {
@@ -304,7 +304,11 @@ void PickPlaceTask::loadParameters() {
 
 bool PickPlaceTask::init(std::string object_name) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	const std::string object = object_name;
+	const std::vector<std::string> object = {};
+	if (object_name == "assembledT") {
+		object.push_back{"object"}
+
+	}
 	// const std::string objectT = objectT_name_;
 	// const std::string objectL = objectL_name_;
 	// const std::string objectI = objectI_name_;
@@ -350,9 +354,32 @@ bool PickPlaceTask::init(std::string object_name) {
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
 		applicability_filter->setPredicate([object](const SolutionBase& s, std::string& comment) {
-			if (s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
-			    ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is already attached and cannot be picked");
-				comment = "object with id '" + object + "' is already attached and cannot be picked";
+			std::vector<std::string> tmp_objects = object;
+			for (size_t i = 0; i < tmp_objects.size(); i++)
+			{
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "got object with id '" << i);
+			}
+			std::vector<bool> attached_status;
+			transform(tmp_objects.begin(), tmp_objects.end(), tmp_objects.begin(), attached_status, [](std::string name, SolutionBase& s){return s.start()->scene()->getCurrentState().hasAttachedBody(name);});
+			for (size_t i = 0; i < attached_status.size(); i++)
+			{
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "object already attached is '" << i);
+			}
+			if (std::any_of(attached_status.begin(), attached_status.end(), [](int i){return i == false;})) {
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "one of the objects is already attached and cannot be picked");
+				for (size_t i = 0; i < attached_status.size(); i++)
+				{
+					ROS_ERROR_STREAM_NAMED(LOGNAME, "object already attached is '" << i);
+				}
+				std::string object_ids = "";
+				for (size_t i = 0; i < tmp_objects.size(); i++)
+				{
+					if (attached_status[i]) {
+						object_ids += object_ids + object[i] + ", ";
+					}
+				}
+				
+				comment = "object with id '" + object_ids + "' is already attached and cannot be picked";
 				return false;
 			}
 			return true;
@@ -360,20 +387,6 @@ bool PickPlaceTask::init(std::string object_name) {
 		//initial_state_ptr = current_state.get();  // remember start state for monitoring grasp pose generator
 		t.add(std::move(applicability_filter));
 	}
-
-	// /****************************************************
-	//  *                                                  *
-	//  *               Open Hand                          *
-	//  *                                                  *
-	//  ***************************************************/
-	// Stage* initial_state_ptr = nullptr;
-	// {  // Open Hand
-	// 	auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
-	// 	stage->setGroup(hand_group_name_);
-	// 	stage->setGoal(hand_open_pose_);
-	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
-	// 	t.add(std::move(stage));
-	// }
 
 
 	/****************************************************
