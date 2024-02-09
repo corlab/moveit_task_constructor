@@ -69,7 +69,7 @@ public:
 	MoveHomeTask(const std::string& task_name, const ros::NodeHandle& pnh);
 	~MoveHomeTask() = default;
 
-	bool init(std::string object_name, std::string object_type);
+	bool init(std::tuple <std::string, std::vector<std::string>> picked_objects, std::string object_type, bool pick);
 
 	bool plan();
 

@@ -357,27 +357,31 @@ bool PickPlaceTask::init(std::tuple <std::string, std::vector<std::string>> pick
 			{
 				ROS_ERROR_STREAM_NAMED(LOGNAME, "got object with id '" << i);
 			}
-			std::vector<bool> attached_status;
-			transform(tmp_objects.begin(), tmp_objects.end(), tmp_objects.begin(), attached_status, [](std::string name, SolutionBase& s){return s.start()->scene()->getCurrentState().hasAttachedBody(name);});
-			for (size_t i = 0; i < attached_status.size(); i++)
+			// std::vector<bool> attached_status;
+			// transform(tmp_objects.begin(), tmp_objects.end(), tmp_objects.begin(), attached_status&, [](std::string name, SolutionBase& s){return s.start()->scene()->getCurrentState().hasAttachedBody(name);});
+			// for (size_t i = 0; i < attached_status.size(); i++)
+			// {
+			// 	ROS_ERROR_STREAM_NAMED(LOGNAME, "object already attached is '" << i);
+			// }
+			struct IsAttached
 			{
-				ROS_ERROR_STREAM_NAMED(LOGNAME, "object already attached is '" << i);
-			}
-			if (std::any_of(attached_status.begin(), attached_status.end(), [](int i){return i == false;})) {
+				const int d;
+				IsAttached(int n) : d(n) {}
+				bool operator()(int n) const { return n % d == 0; }
+			};
+			if (std::any_of(tmp_objects.begin(), tmp_objects.end(), [&](std::string name){return s.start()->scene()->getCurrentState().hasAttachedBody(name);})) {
 				ROS_ERROR_STREAM_NAMED(LOGNAME, "one of the objects is already attached and cannot be picked");
-				for (size_t i = 0; i < attached_status.size(); i++)
-				{
-					ROS_ERROR_STREAM_NAMED(LOGNAME, "object already attached is '" << i);
-				}
 				std::string object_ids = "";
 				for (size_t i = 0; i < tmp_objects.size(); i++)
 				{
-					if (attached_status[i]) {
+					ROS_ERROR_STREAM_NAMED(LOGNAME, "object attached status is '" << s.start()->scene()->getCurrentState().hasAttachedBody(tmp_objects.at(i)));
+					if (s.start()->scene()->getCurrentState().hasAttachedBody(tmp_objects.at(i))) {
 						object_ids += object_ids + objects[i] + ", ";
+						ROS_ERROR_STREAM_NAMED(LOGNAME, "object is attached add '" << object_ids << objects[i] << "' to attached object ids");
 					}
 				}
-				
-				comment = "object with id '" + object_ids + "' is already attached and cannot be picked";
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id(s) '" << object_ids << "' is/are already attached and cannot be picked");
+				comment = "object with id(s) '" + object_ids + "' is/are already attached and cannot be picked";
 				return false;
 			}
 			return true;
@@ -406,7 +410,7 @@ bool PickPlaceTask::init(std::tuple <std::string, std::vector<std::string>> pick
 	 *               Pick Object                        *
 	 *                                                  *
 	 ***************************************************/
-	Stage* pick_stage_ptr = nullptr;
+	//Stage* pick_stage_ptr = nullptr;
 	{
 		auto grasp = std::make_unique<SerialContainer>("pick object");
 		t.properties().exposeTo(grasp->properties(), { "eef", "hand", "group", "ik_frame" });

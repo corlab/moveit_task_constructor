@@ -16,6 +16,7 @@
   <depend>roscpp</depend>
   <depend>rosparam_shortcuts</depend>
   <depend>sensor_msgs</depend>
+  <depend>humation_messages</depend>
 
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning_interface</depend>

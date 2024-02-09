@@ -34,21 +34,21 @@
    Desc:   A demo to show MoveIt Task Constructor in action
 */
 
-#include <moveit_task_constructor_demo/move_home_task.h>
+#include <moveit_task_constructor_demo/lift_task.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <geometric_shapes/shape_operations.h>
 
 namespace moveit_task_constructor_demo {
 
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
-constexpr char MoveHomeTask::LOGNAME[];
+constexpr char LiftTask::LOGNAME[];
 
-MoveHomeTask::MoveHomeTask(const std::string& task_name, const ros::NodeHandle& pnh)
+LiftTask::LiftTask(const std::string& task_name, const ros::NodeHandle& pnh)
   : pnh_(pnh), task_name_(task_name) {
 	loadParameters();
 }
 
-void MoveHomeTask::loadParameters() {
+void LiftTask::loadParameters() {
 	/****************************************************
 	 *                                                  *
 	 *               Load Parameters                    *
@@ -113,7 +113,7 @@ void MoveHomeTask::loadParameters() {
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool MoveHomeTask::init(std::tuple <std::string, std::vector<std::string>> picked_objects, std::string object_type, bool pick) {
+bool LiftTask::init(std::tuple <std::string, std::vector<std::string>> picked_objects, std::string object_type, bool pick) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
 	const std::vector<std::string> object = std::get<1>(picked_objects);
 	ROS_INFO_STREAM_NAMED(LOGNAME, "holding object '" << std::get<0>(picked_objects) << "'");
@@ -230,7 +230,7 @@ bool MoveHomeTask::init(std::tuple <std::string, std::vector<std::string>> picke
 		geometry_msgs::Vector3Stamped vec;
 		vec.header.frame_id = world_frame_;
 		//vec.vector.z = 1.0;
-		vec.vector.z = 1.0;
+		vec.vector.z = 1.25;
 		stage->setDirection(vec);
 		t.add(std::move(stage));
 	}
@@ -255,18 +255,18 @@ bool MoveHomeTask::init(std::tuple <std::string, std::vector<std::string>> picke
 		t.add(std::move(stage));
 	}
 
-	/******************************************************
-	 *                                                    *
-	 *          Move to Home                              *
-	 *                                                    *
-	 *****************************************************/
-	{
-		auto stage = std::make_unique<stages::MoveTo>("move home", sampling_planner);
-		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
-		stage->setGoal(arm_home_pose_);
-		stage->restrictDirection(stages::MoveTo::FORWARD);
-		t.add(std::move(stage));
-	}
+	// /******************************************************
+	//  *                                                    *
+	//  *          Move to Home                              *
+	//  *                                                    *
+	//  *****************************************************/
+	// {
+	// 	auto stage = std::make_unique<stages::MoveTo>("move home", sampling_planner);
+	// 	stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+	// 	stage->setGoal(arm_home_pose_);
+	// 	stage->restrictDirection(stages::MoveTo::FORWARD);
+	// 	t.add(std::move(stage));
+	// }
 
 	// prepare Task structure for planning
 	try {
@@ -279,14 +279,14 @@ bool MoveHomeTask::init(std::tuple <std::string, std::vector<std::string>> picke
 	return true;
 }
 
-bool MoveHomeTask::plan() {
+bool LiftTask::plan() {
 	ROS_INFO_NAMED(LOGNAME, "Start searching for task solutions");
 	int max_solutions = pnh_.param<int>("max_solutions", 10);
 
 	return static_cast<bool>(task_->plan(max_solutions));
 }
 
-bool MoveHomeTask::execute() {
+bool LiftTask::execute() {
 	ROS_INFO_NAMED(LOGNAME, "Executing solution trajectory");
 	moveit_msgs::MoveItErrorCodes execute_result;
 

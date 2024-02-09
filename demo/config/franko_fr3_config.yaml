@@ -88,6 +88,8 @@ magazine_name: "magazine"
 magazine_file: "/home/humation/Documents/magazine_mirrored.stl"
 magazine_poseT: [1.787, 0.145, 0.1, 0, 0, 1.571]
 magazine_poseL: [1.967, 0.145, 0.1, 0, 0, 1.571]
+magazineT_assembled_file: "/home/humation/Documents/magazinT_assembled.stl"
+magazineT_assembled_pose: [0.93, 0.6175, 0.295, 0, 0, -1.571]
 #magazine_pose: [0.11, 0.625, 0.0, 0, 0, -1.5708]
 
 # Gripper grasp frame transform [x,y,z,r,p,y] y,p,r?!
@@ -115,6 +117,14 @@ place_pose2: [0.2, -0.75, 0.376, 0, -3.14, -1.571] # front upright
 #place_pose3: [0.2, -0.75, 0.376, -1.571, 1.571, 3.14]
 place_pose3: [0.2, -0.75, 0.376, 0, -3.14, 1.571] # back upright
 
+#(-0.14 + (object_id * 0.07), -0.465, 0.377, 0.78)
+assembly_place_pose: [0.93, 0.53, 0.3725, 0, 3.14, 0.0] # back upright
+
+assembled_pipe1_pose: [-0.147909, -0.583942, 0.172329,  1.571, 0, 0]
+assembled_pipe2_pose: [-0.147926, -0.343943, 0.172775,  1.571, 0, 0]
+assembled_pipe3_pose: [-0.147929, -0.46372, 0.052552,  0, 0, 0]
+assembled_T_pose: [-0.148368, -0.46444, 0.272957,  1.571, 0, 0]
+
 # place_pose: [0.5, 0.3, 0.532, 0, 0, 0]
 place_surface_offset: 0.0001 # place offset from table
 
@@ -123,5 +133,9 @@ approach_object_min_dist: 0.1
 approach_object_max_dist: 0.15
 
 # Valid height range when lifting an object after pick
-lift_object_min_dist: 0.01
-lift_object_max_dist: 0.16
+lift_object_min_dist: 0.05
+lift_object_max_dist: 0.25
+
+# Valid height range when lifting an object after pick
+move_home_object_min_dist: 0.01
+move_home_object_max_dist: 0.16

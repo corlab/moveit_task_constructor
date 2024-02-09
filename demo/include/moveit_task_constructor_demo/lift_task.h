@@ -63,13 +63,13 @@
 namespace moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
-class PlaceTask
+class LiftTask
 {
 public:
-	PlaceTask(const std::string& task_name, const ros::NodeHandle& pnh);
-	~PlaceTask() = default;
+	LiftTask(const std::string& task_name, const ros::NodeHandle& pnh);
+	~LiftTask() = default;
 
-	bool init(std::tuple <std::string, std::vector<std::string>> picked_objects, int place);
+	bool init(std::tuple <std::string, std::vector<std::string>> picked_objects, std::string object_type, bool pick);
 
 	bool plan();
 
@@ -78,7 +78,7 @@ public:
 private:
 	void loadParameters();
 
-	static constexpr char LOGNAME[]{ "place_task" };
+	static constexpr char LOGNAME[]{ "lift_task" };
 
 	ros::NodeHandle pnh_;
 

@@ -45,12 +45,12 @@ namespace moveit_task_constructor_demo {
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 constexpr char PlaceTask::LOGNAME[];
 
-PlaceTask::PlaceTask(const std::string& task_name, const std::string& place_name, const ros::NodeHandle& pnh)
+PlaceTask::PlaceTask(const std::string& task_name, const ros::NodeHandle& pnh)
   : pnh_(pnh), task_name_(task_name) {
-	loadParameters(place_name);
+	loadParameters();
 }
 
-void PlaceTask::loadParameters(const std::string& place_name) {
+void PlaceTask::loadParameters() {
 	/****************************************************
 	 *                                                  *
 	 *               Load Parameters                    *
@@ -94,7 +94,7 @@ void PlaceTask::loadParameters(const std::string& place_name) {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_file", objectL4_file_);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_file", objectI_file_);
 	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object2_dimensions", object2_dimensions_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object_reference_frame", object_reference_frame_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "magazine_reference_frame", object_reference_frame_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link_);
 	support_surfaces_ = { surface_link_ };
 
@@ -110,12 +110,12 @@ void PlaceTask::loadParameters(const std::string& place_name) {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_min_dist", lift_object_min_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_max_dist", lift_object_max_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_surface_offset", place_surface_offset_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, place_name, place_pose_);
+	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_place_pose", place_pose_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_pose", assembly_pose_);
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_objects) {
+bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_objects, int placing_position) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
 	std::vector<std::string> objects = std::get<1>(picked_objects);
 	std::string object_name = std::get<0>(picked_objects);
@@ -178,28 +178,43 @@ bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_o
 		auto applicability_filter =
 		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
 		applicability_filter->setPredicate([objects](const SolutionBase& s, std::string& comment) {
-			// if (!s.start()->scene()->getCurrentState().hasAttachedBody(object)) {
-			//     ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' is not attatched");
-			// 	comment = "object with id '" + object + "' is not attached";
-			// 	return false;
+			std::vector<std::string> tmp_objects = objects;
+			for (size_t i = 0; i < tmp_objects.size(); i++)
+			{
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "got object with id '" << i);
+			}
+			// std::vector<bool> attached_status;
+			// transform(tmp_objects.begin(), tmp_objects.end(), tmp_objects.begin(), attached_status&, [](std::string name, SolutionBase& s){return s.start()->scene()->getCurrentState().hasAttachedBody(name);});
+			// for (size_t i = 0; i < attached_status.size(); i++)
+			// {
+			// 	ROS_ERROR_STREAM_NAMED(LOGNAME, "object already attached is '" << i);
 			// }
+			struct IsAttached
+			{
+				const int d;
+				IsAttached(int n) : d(n) {}
+				bool operator()(int n) const { return n % d == 0; }
+			};
+			if (std::any_of(tmp_objects.begin(), tmp_objects.end(), [&](std::string name){return !s.start()->scene()->getCurrentState().hasAttachedBody(name);})) {
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "at least one of the objects is not already attached and cannot be placed");
+				std::string object_ids = "";
+				for (size_t i = 0; i < tmp_objects.size(); i++)
+				{
+					ROS_ERROR_STREAM_NAMED(LOGNAME, "object attached status is '" << !s.start()->scene()->getCurrentState().hasAttachedBody(tmp_objects.at(i)));
+					if (!s.start()->scene()->getCurrentState().hasAttachedBody(tmp_objects.at(i))) {
+						object_ids += object_ids + objects[i] + ", ";
+						ROS_ERROR_STREAM_NAMED(LOGNAME, "object is attached add '" << object_ids << objects[i] << "' to attached object ids");
+					}
+				}
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id(s) '" << object_ids << "' is/are not already attached and cannot be placed");
+				comment = "object with id(s) '" + object_ids + "' is/are not already attached and cannot be placed";
+				return false;
+			}
 			return true;
 		});
 		//initial_state_ptr = current_state.get();  // remember start state for monitoring grasp pose generator
 		t.add(std::move(applicability_filter));
 	}
-
-	// 	/****************************************************
-	//  *                                                  *
-	//  *               memorise                           *
-	//  *                                                  *
-	//  ***************************************************/
-	// Stage* initial_state_ptr = nullptr;
-	// {  // Open Hand
-	// 	auto stage = std::make_unique<stages::CurrentState>("memorise");
-	// 	initial_state_ptr = stage.get();  // remember start state for monitoring grasp pose generator
-	// 	t.add(std::move(stage));
-	// }
 
 	/******************************************************
 	 *                                                    *
@@ -251,7 +266,7 @@ bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_o
 			stage->properties().configureInitFrom(Stage::PARENT, { "ik_frame" });
 			stage->properties().set("marker_ns", "place_pose");
 			stage->properties().set("allow_z_flip", false);
-			stage->setObject(object);
+			stage->setObject(object_name);
 			// stage->setObject(assembly_object);
 
 			// Set target pose
@@ -260,6 +275,9 @@ bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_o
 			// p.header.frame_id = "panda_link8";
 			// assembly_object_pose: [0.5, 0.3, 0.5, 0, 0, 0]
 			p.pose = place_pose_;
+			ROS_WARN_STREAM_NAMED(LOGNAME, "place_pose_ y is " << p.pose.position.y);
+			p.pose.position.y -= placing_position * 0.07;
+			ROS_WARN_STREAM_NAMED(LOGNAME, "place_pose_ y is " << p.pose.position.y);
 
 			// bool vary = false;
 			// if (vary) {
@@ -283,11 +301,11 @@ bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_o
 			//p.pose = assembly_pose_;
 //			p.pose.position.x = 0.5;
 			//p.pose.position.y += object1_dimensions_[0] + (assembly_object_dimensions_[0] / 2) + place_surface_offset_;
-			p.pose.position.y += 0.075 + (assembly_object_dimensions_[0] / 2) + place_surface_offset_ + 0.02; // todo get mesh dim?
+			p.pose.position.y += place_surface_offset_ + 0.02; // todo get mesh dim?
 //			p.pose.position.z = 0.5;
 			//p.pose.position.z += 0.5 * object_dimensions_[0] + place_surface_offset_;
 			//p.pose.position.z += object1_dimensions_[0] + 0.5 * object1_dimensions_[0] + place_surface_offset_;
-			p.pose.position.z += 0.243 + 0.5 * assembly_object_dimensions_[0];
+			//p.pose.position.z += 0.243 + 0.5 * assembly_object_dimensions_[0];
 			stage->setPose(p);
 			stage->setMonitoredStage(initial_state_ptr);  // hook into successful pick solutions
 			//stage->setMonitoredStage(null);
@@ -309,7 +327,7 @@ bool PlaceTask::init(std::tuple <std::string, std::vector<std::string>> picked_o
 		 ***************************************************/
 		{
 			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object , assembly object)");
-			stage->allowCollisions(assembly_object, object, true);
+			stage->allowCollisions("magazine_T_assembled", objects, true);
 			place->insert(std::move(stage));
 		}
 
