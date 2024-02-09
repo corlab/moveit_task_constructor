@@ -63,62 +63,50 @@ void MoveHomeTask::loadParameters() {
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "eef_name", eef_name_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_frame", hand_frame_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "world_frame", world_frame_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "grasp_frame_transform", grasp_frame_transform_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assemble_frame_transform", assemble_frame_transform_);
 
 	// Predefined pose targets
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_open_pose", hand_open_pose_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_close_pose", hand_close_pose_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_home_pose", arm_home_pose_);
 
 	// Pick object
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT1_name", objectT1_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT2_name", objectT2_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT3_name", objectT3_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT4_name", objectT4_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL1_name", objectL1_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL2_name", objectL2_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL3_name", objectL3_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_name", objectL4_name_);
-	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object1_dimensions", object1_dimensions_);
-	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_name", objectI_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT1_file", objectT1_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT2_file", objectT2_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT3_file", objectT3_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectT4_file", objectT4_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL1_file", objectL1_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL2_file", objectL2_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL3_file", objectL3_file_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectL4_file", objectL4_file_);
-	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "objectI_file", objectI_file_);
-	//errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object2_dimensions", object2_dimensions_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object_reference_frame", object_reference_frame_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link_);
-	support_surfaces_ = { surface_link_ };
-
-	// Assembly object
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_name", assembly_object_name_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_dimensions", assembly_object_dimensions_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link_);
-	support_surfaces_ = { surface_link_ };
 
 	// Pick/Place metrics
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_min_dist", approach_object_min_dist_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_max_dist", approach_object_max_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_min_dist", lift_object_min_dist_);
 	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "lift_object_max_dist", lift_object_max_dist_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_surface_offset", place_surface_offset_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_pose1", place_pose_);
-	errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "assembly_object_pose", assembly_pose_);
 	rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 
-bool MoveHomeTask::init(std::string object_name) {
+bool MoveHomeTask::init(std::string object_name, int object_id, bool pick) {
 	ROS_INFO_NAMED(LOGNAME, "Initializing task pipeline");
-	const std::string object = object_name;
-	// const std::string objectT = objectT_name_;
-	// const std::string objectL = objectL_name_;
-	// const std::string objectI = objectI_name_;
+	std::string object = "";
+	std::vector<std::string> objects;
+	ROS_INFO_STREAM_NAMED(LOGNAME, "before assigning object or objects ");
+	ros::Duration(1).sleep();
+	if (pick) {
+		object = object_name + std::to_string(object_id);
+		if (0 < object_id && object_id <= 3) {
+			surface_link_ = surface_link_ + "1";
+		} else if (3 < object_id && object_id <= 6) {
+			surface_link_ = surface_link_ + "2";
+		}
+	} else {
+		ROS_INFO_STREAM_NAMED(LOGNAME, "get all known attached objects for placing: ");
+		moveit::planning_interface::PlanningSceneInterface psi;
+		ROS_INFO_STREAM_NAMED(LOGNAME, "got psi ");
+		std::map<std::string, moveit_msgs::AttachedCollisionObject> attached_objects = psi.getAttachedObjects();
+		ROS_INFO_STREAM_NAMED(LOGNAME, "got attached objects ");
+		if (attached_objects.size() > 0) {
+			ROS_INFO_STREAM_NAMED(LOGNAME, "got all known attached objects: " << attached_objects.size());
+			for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : attached_objects) {
+				objects.push_back(object.first);
+			}
+		} else {
+			ROS_INFO_STREAM_NAMED(LOGNAME, "got all known attached objects: EMPTY! ");
+		}
+	}
+	ROS_INFO_NAMED(LOGNAME, "Got support_surface %s", surface_link_.c_str());
+	support_surfaces_ = { surface_link_ };
+	
 	const std::string assembly_object = assembly_object_name_;
 
 	// Reset ROS introspection before constructing the new object
@@ -153,8 +141,8 @@ bool MoveHomeTask::init(std::string object_name) {
 	 *                                                  *
 	 ***************************************************/
 	//Stage* initial_state_ptr = nullptr;
-	{
-		auto current_state = std::make_unique<stages::CurrentState>("current state");
+	if (pick) {
+		auto current_state = std::make_unique<stages::CurrentState>("current state for picking");
 
 		// Verify that object is not attached
 		auto applicability_filter =
@@ -169,31 +157,66 @@ bool MoveHomeTask::init(std::string object_name) {
 		});
 		//initial_state_ptr = current_state.get();  // remember start state for monitoring grasp pose generator
 		t.add(std::move(applicability_filter));
+	} else {
+		auto current_state = std::make_unique<stages::CurrentState>("current state for placing");
+
+		// Verify that object is not attached
+		auto applicability_filter =
+		    std::make_unique<stages::PredicateFilter>("applicability test", std::move(current_state));
+		applicability_filter->setPredicate([objects](const SolutionBase& s, std::string& comment) {
+			// if (objects.size() == 0) {
+			//     ROS_ERROR_STREAM_NAMED(LOGNAME, objects.size() << " objects attached and cannot be placed");
+			// 	comment = objects.size() + " objects attached and cannot be placed";
+			// 	return false;
+			// }
+			ROS_ERROR_STREAM_NAMED(LOGNAME, objects.size() << " objects attached");
+			return true;
+		});
+		//initial_state_ptr = current_state.get();  // remember start state for monitoring grasp pose generator
+		t.add(std::move(applicability_filter));
+	}
+
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "object = '" << object << "'");
+	if (object != "" || objects.size() > 0) {
+		/****************************************************
+		*               Attach / Detache Object                      *
+		***************************************************/
+		{
+			if (pick) {
+				auto stage = std::make_unique<stages::ModifyPlanningScene>("attach object ");
+				stage->attachObject(object, hand_frame_);
+				t.add(std::move(stage));
+			} else {
+				auto stage = std::make_unique<stages::ModifyPlanningScene>("detach object");
+				// for (std::string object : objects) {
+				// 	stage->detachObject(object, hand_frame_);
+				// }
+				stage->detachObject(objects[0], hand_frame_);
+				t.add(std::move(stage));
+			}
+		}
+
+		/****************************************************
+		*               Allow collision (object support)   *
+		***************************************************/
+		{
+			auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,support)");
+			if (pick) {
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "object with id '" << object << "' and support '" << support_surfaces_[0].c_str() << "'");
+				stage->allowCollisions({ object }, support_surfaces_, true);
+			} else {
+				ROS_ERROR_STREAM_NAMED(LOGNAME, "objects first with id '" << objects.at(0).c_str() << "' and support '" << support_surfaces_[0].c_str() << "'");
+				stage->allowCollisions(objects, support_surfaces_, true);
+			}
+			t.add(std::move(stage));
+		}
 	}
 
 	/****************************************************
- 	*               Attach Object                      *
+	*               Lift object / hand                        *
 	***************************************************/
 	{
-		auto stage = std::make_unique<stages::ModifyPlanningScene>("attach object");
-		stage->attachObject(object, hand_frame_);
-		t.add(std::move(stage));
-	}
-
-	/****************************************************
- 	*               Allow collision (object support)   *
-	***************************************************/
-	{
-		auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,support)");
-		stage->allowCollisions({ object }, support_surfaces_, true);
-		t.add(std::move(stage));
-	}
-
-	/****************************************************
- 	*               Lift object                        *
-	***************************************************/
-	{
-		auto stage = std::make_unique<stages::MoveRelative>("lift object", cartesian_planner);
+		auto stage = std::make_unique<stages::MoveRelative>("lift hand", cartesian_planner);
 		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
 		stage->setMinMaxDistance(lift_object_min_dist_, lift_object_max_dist_);
 		stage->setIKFrame(hand_frame_);
@@ -209,13 +232,18 @@ bool MoveHomeTask::init(std::string object_name) {
 	}
 
 	/****************************************************
-    *               Forbid collision (object support)  *
+	*               Forbid collision (object support)  *
 	***************************************************/
-	{
+	if (object != "") {
 		auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (object,support)");
 		stage->allowCollisions({ object }, support_surfaces_, false);
 		t.add(std::move(stage));
+	} else if (objects.size() > 0) {
+		auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (objects,support)");
+		stage->allowCollisions(objects, support_surfaces_, false);	
+		t.add(std::move(stage));
 	}
+	
 
 	/******************************************************
 	 *                                                    *

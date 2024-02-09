@@ -60,25 +60,25 @@
 
 #pragma once
 
-namespace moveit_task_constructor_demo {
+namespace franka_moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
-class MoveHomeTask
+class FrankaPlaceTask
 {
 public:
-	MoveHomeTask(const std::string& task_name, const ros::NodeHandle& pnh);
-	~MoveHomeTask() = default;
+	FrankaPlaceTask(const std::string& task_name, const std::string& place_name, const ros::NodeHandle& pnh);
+	~FrankaPlaceTask() = default;
 
-	bool init(std::string object_name, int object_id, bool pick);
+	bool init();
 
 	bool plan();
 
 	bool execute();
 
 private:
-	void loadParameters();
+	void loadParameters(const std::string& place_name);
 
-	static constexpr char LOGNAME[]{ "move_home_task" };
+	static constexpr char LOGNAME[]{ "hold_task" };
 
 	ros::NodeHandle pnh_;
 
@@ -95,6 +95,18 @@ private:
 	std::vector<std::string> support_surfaces_;
 	std::string object_reference_frame_;
 	std::string surface_link_;
+	std::string pipe1_name_;
+	std::string pipe2_name_;
+	std::string pipe3_name_;
+	std::string pipe4_name_;
+	std::string pipe5_name_;
+	std::string pipe6_name_;
+	std::string pipe1_file_;
+	std::string pipe2_file_;
+	std::string pipe3_file_;
+	std::string pipe4_file_;
+	std::string pipe5_file_;
+	std::string pipe6_file_;
 	std::string assembly_object_name_;
 	std::string world_frame_;
 	std::vector<double> objectT_dimensions_;

@@ -263,15 +263,23 @@ void Task::preempt() {
 }
 
 moveit::core::MoveItErrorCode Task::execute(const SolutionBase& s) {
+	std::cout << "in execute. create and wait for action client" << std::endl;
 	actionlib::SimpleActionClient<moveit_task_constructor_msgs::ExecuteTaskSolutionAction> ac("execute_task_solution");
+	std::cout << "got action client " << std::endl;
 	ac.waitForServer();
+	std::cout << "got action client server " << std::endl;
 
 	moveit_task_constructor_msgs::ExecuteTaskSolutionGoal goal;
+	std::cout << "created goal msg" << std::endl;
 	s.fillMessage(goal.solution, pimpl()->introspection_.get());
+	std::cout << "filled goal msg" << std::endl;
 	s.start()->scene()->getPlanningSceneMsg(goal.solution.start_scene);
+	std::cout << "gotPlanningScene Msg" << std::endl;
 
 	ac.sendGoal(goal);
+	std::cout << "goal send" << std::endl;
 	ac.waitForResult();
+	std::cout << "got result" << std::endl;
 	return ac.getResult()->error_code;
 }
 

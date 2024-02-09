@@ -51,6 +51,7 @@ ModifyPlanningScene::ModifyPlanningScene(const std::string& name) : PropagatingE
 }
 
 void ModifyPlanningScene::attachObjects(const Names& objects, const std::string& attach_link, bool attach) {
+	ROS_ERROR_STREAM_NAMED("attachObjects 1", objects.at(0).c_str() << ": attach_link = " << attach_link.c_str() << " attach = " << attach);
 	auto it_inserted = attach_objects_.insert(std::make_pair(attach_link, std::make_pair(Names(), attach)));
 	Names& o = it_inserted.first->second.first;
 	o.insert(o.end(), objects.begin(), objects.end());
@@ -93,11 +94,14 @@ void ModifyPlanningScene::computeBackward(const InterfaceState& to) {
 
 void ModifyPlanningScene::attachObjects(planning_scene::PlanningScene& scene,
                                         const std::pair<std::string, std::pair<Names, bool> >& pair, bool invert) {
+	ROS_ERROR_STREAM_NAMED("attachObjects 2 pair = (", pair.first.c_str() << ", " << pair.second.second << ": invert = " << invert);
 	moveit_msgs::AttachedCollisionObject obj;
 	obj.link_name = pair.first;
 	bool attach = pair.second.second;
-	if (invert)
+	if (invert) {
 		attach = !attach;
+		ROS_ERROR_STREAM_NAMED("attachObjects 2 attach = ", attach);
+	}
 	obj.object.operation = attach ? static_cast<int8_t>(moveit_msgs::CollisionObject::ADD) :
 	                                static_cast<int8_t>(moveit_msgs::CollisionObject::REMOVE);
 	for (const std::string& name : pair.second.first) {

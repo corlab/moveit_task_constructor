@@ -50,7 +50,7 @@
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 
 bool close_gripper() {	
-	actionlib::SimpleActionClient<franka_gripper::GraspAction> ac("/franko/franka_gripper/grasp", true);
+	actionlib::SimpleActionClient<franka_gripper::GraspAction> ac("/franka_gripper/grasp", true);
 
 	// # Waits until the action server has started up and started
 	// # listening for goals.
@@ -88,7 +88,7 @@ bool close_gripper() {
 }
 
 bool open_gripper() {	
-	actionlib::SimpleActionClient<franka_gripper::MoveAction> ac("/franko/franka_gripper/move", true);
+	actionlib::SimpleActionClient<franka_gripper::MoveAction> ac("/franka_gripper/move", true);
 	// client = actionlib.SimpleActionClient('/franko/franka_gripper/grasp', franka_gripper.msg.GraspAction)
 
 	// # Waits until the action server has started up and started
@@ -188,8 +188,8 @@ int main(int argc, char** argv) {
 
 	//moveit_task_constructor_demo::setupDemoScene(pnh);
 
-	ros::ServiceServer assembly_service = nh.advertiseService("franko_assemble", pick);
-	ROS_INFO("Franko: ready to assemble.");
+	ros::ServiceServer assembly_service = nh.advertiseService("franka_pick_demo", pick);
+	ROS_INFO("Franka: ready to assemble.");
 
 	// Keep introspection alive
 	ros::waitForShutdown();

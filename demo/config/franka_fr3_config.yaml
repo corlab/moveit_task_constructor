@@ -14,13 +14,28 @@ arm_home_pose: "home"
 # Scene frames
 world_frame: "world"
 table_reference_frame: "world"
-object_reference_frame: "fr3_link0"
-surface_link: "table"
+object_reference_frame: "environment"
+surface_link: "magazine"
 
 # Collision object for picking
-assembly_object_name: "pipe"
-assembly_object_dimensions: [0.2, 0.01] # [height, radius]
-assembly_object_pose: [0.239, -0.41, 0.147, 0, 0, 0]
+pipe1_name: "pipe1"
+pipe_dimensions: [0.2, 0.008] # [height, radius]
+pipe1_pose: [-0.3, 0.082, 0.035, 0, 1.57, 0]
+
+pipe2_name: "pipe2"
+pipe2_pose: [-0.3, 0.162, 0.035, 0, 1.57, 0]
+
+pipe3_name: "pipe3"
+pipe3_pose: [-0.3, 0.242, 0.035, 0, 1.57, 0]
+
+pipe4_name: "pipe4"
+pipe4_pose: [-0.58, 0.085, 0.035, 0, 1.57, 0]
+
+pipe5_name: "pipe5"
+pipe5_pose: [-0.58, 0.165, 0.035, 0, 1.57, 0]
+
+pipe6_name: "pipe6"
+pipe6_pose: [-0.58, 0.245, 0.035, 0, 1.57, 0]
 
 # Table model
 spawn_table: true
@@ -28,20 +43,31 @@ table_name: "table"
 table_dimensions: [0.75, 0.75, 0.1]  # [length, width, height]
 table_pose: [0.025, -0.475, 0.0, 0, 0, 0]
 
-#spawn_magazine: true
-#magazine_name: "magazine"
-#magazine_dimensions: [0.1, 0.2, 0.01]  # [length, width, height]
-#magazine_file: "/home/humation/Documents/magazin_festo_komplett.stl"
-#magazine_file: "/home/franko/Documents/magazine_mirrored.stl"
-#magazine_pose: [0.239, -0.41, 0.147, 0, 0, 0]
-#magazine_pose: [0.11, 0.625, 0.0, 0, 0, -1.5708]
+spawn_magazine: true
+magazine1_name: "magazine1"
+magazine_file: "/home/humation/Documents/magazin_rohr_var_1_centered.stl"
+magazine1_pose: [-0.3, 0.165, 0.1, 0, 0, 1.57]
+
+magazine2_name: "magazine2"
+magazine2_pose: [-0.58, 0.155, 0.1, 0, 0, 1.57]
+
+magazine3_name: "magazine3"
+magazine3_pose: [-0.3, 0.395, 0.1, 0, 0, 1.57]
+
+magazine4_name: "magazine4"
+magazine4_file: "/home/humation/Documents/magazin_rohr_var_3.stl"
+magazine4_pose: [-0.58, 0.395, 0.11, 0, 0, 1.57]
 
 # Gripper grasp frame transform [x,y,z,r,p,y] y,p,r?!
-grasp_frame_transform: [0, 0, 0, -1.571, -1.571, 0]
+grasp_frame_transform: [0, 0, 0.018, 3.14, 1.57, 0]
+# grasp_frame_transform: [0, 0, 0.018, 0, -1.57, 0]
+assemble_frame_transform: [0, 0, 0, 0, 0, 0]
 
 # Place pose [x,y,z,r,p,y]
-#place_pose1: [0.2, -0.75, 0.376, 1.571, 0, -1.571]
-#place_pose2: [0.2, -0.75, 0.376, 0, -3.14, -1.571] 
+# place_pose1: [-0.3, 0.318, 0.16, 3.14, 0, 0]
+# place_pose2: [-0.3, 0.398, 0.16, 3.14, 0, 0]
+place_pose1: [-0.58, 0.318, 0.17, 3.14, 0, 0]
+place_pose2: [-0.58, 0.398, 0.17, 3.14, 0, 0]  
 #place_pose3: [0.2, -0.75, 0.376, 0, -3.14, 1.571]
 
 place_surface_offset: 0.0001 # place offset from table

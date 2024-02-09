@@ -117,7 +117,7 @@ bool Connect::compatible(const InterfaceState& from_state, const InterfaceState&
 	}
 	// all active joints that we don't plan for should match
 	for (const moveit::core::JointModel* jm : from.getRobotModel()->getJointModels()) {
-		if (planned_joint_names.count(jm->getName()) || jm->getName()=="franko_fr3_finger_joint1" || jm->getName()=="franko_fr3_finger_joint2") {
+		if (planned_joint_names.count(jm->getName()) || jm->getName()=="fr3_finger_joint1" || jm->getName()=="fr3_finger_joint2") {
 			continue;  // ignore joints we plan for
 		}
 

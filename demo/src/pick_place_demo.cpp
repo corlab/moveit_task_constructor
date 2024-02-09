@@ -164,7 +164,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init("objectT" + std::to_string(t_id))) {
+					if (!move_home_task.init("objectT", t_id, true)) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";
@@ -252,7 +252,7 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
 				if (close_gripper()) {
 					moveit_task_constructor_demo::MoveHomeTask move_home_task("move_home_task", pnh);
-					if (!move_home_task.init("objectL" + std::to_string(l_id))) {
+					if (!move_home_task.init("objectL", l_id, true)) {
 						ROS_INFO_NAMED(LOGNAME, "MoveHomeTask Initialization failed");
 						res.success = false;
 						res.message = "MoveHomeTask Initialization failed";

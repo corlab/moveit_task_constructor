@@ -60,18 +60,19 @@
 
 #pragma once
 
-namespace moveit_task_constructor_demo {
+namespace franka_moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
 // prepare a demo environment from ROS parameters under pnh
+void setupDemoScene(ros::NodeHandle& pnh);
 void resetDemoScene(ros::NodeHandle& pnh);
 void spawnPipe(ros::NodeHandle& pnh, const std::string& name);
 
-class FrankaPickTask
+class FrankaPickPlaceTask
 {
 public:
-	FrankaPickTask(const std::string& task_name, const ros::NodeHandle& pnh);
-	~FrankaPickTask() = default;
+	FrankaPickPlaceTask(const std::string& task_name, const ros::NodeHandle& pnh);
+	~FrankaPickPlaceTask() = default;
 
 	bool init(std::string object_name);
 
@@ -99,18 +100,23 @@ private:
 	std::vector<std::string> support_surfaces_;
 	std::string object_reference_frame_;
 	std::string surface_link_;
-	std::string objectT_name_;
-	std::string objectL_name_;
-	std::string objectI_name_;
-	std::string objectT_file_;
-	std::string objectL_file_;
-	std::string objectI_file_;
-	std::string assembly_object_name_;
+	std::string pipe1_name_;
+	std::string pipe2_name_;
+	std::string pipe3_name_;
+	std::string pipe4_name_;
+	std::string pipe5_name_;
+	std::string pipe6_name_;
+	std::string pipe1_file_;
+	std::string pipe2_file_;
+	std::string pipe3_file_;
+	std::string pipe4_file_;
+	std::string pipe5_file_;
+	std::string pipe6_file_;
 	std::string world_frame_;
-	std::vector<double> objectT_dimensions_;
+	std::vector<double> pipe_dimensions_;
 	//std::vector<double> objectL_dimensions_;
 	//std::vector<double> objectI_dimensions_;
-	std::vector<double> assembly_object_dimensions_;
+	// std::vector<double> assembly_object_dimensions_;
 
 	// Predefined pose targets
 	std::string hand_open_pose_;
@@ -130,4 +136,4 @@ private:
 	geometry_msgs::Pose assembly_pose_;
 	double place_surface_offset_;
 };
-}  // namespace moveit_task_constructor_demo
+}  // namespace franka_moveit_task_constructor_demo
