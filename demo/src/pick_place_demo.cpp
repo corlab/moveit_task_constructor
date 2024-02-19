@@ -596,54 +596,65 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Planning succeded");
 		if (pnh.param("execute", false)) {
 			if (open_gripper()) {
-				pick_place_task.execute();
-				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
-				if (close_gripper()) {
-					moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
-					if (!lift_task.init({object_name, {object_name}}, "T", true)) {
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
-						res.success = false;
-						res.message = "LiftTask Initialization failed";
-						return true;
-					}
-					if (lift_task.plan()) {
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
-						lift_task.execute();
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
-						if (!grasp_successful()) {
-							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
-							//return false;
-							t_id += 1;
-							if (t_id > 4) {
-								t_id = 1;
-							}
-							setupDemoScene(pnh);
+				if (pick_place_task.execute()) {
+					ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
+					if (close_gripper()) {
+						moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
+						if (!lift_task.init({object_name, {object_name}}, "T", true)) {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
 							res.success = false;
-							res.message = "Grasp failed gripper closed to little or to much.";
+							res.message = "LiftTask Initialization failed";
+							return true;
+						}
+						if (lift_task.plan()) {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
+							lift_task.execute();
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
+							if (!grasp_successful()) {
+								ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
+								//return false;
+								t_id += 1;
+								if (t_id > 4) {
+									t_id = 1;
+								}
+								if (t_id == 2) {
+									t_id = 3;
+								}
+								setupDemoScene(pnh);
+								res.success = false;
+								res.message = "Grasp failed gripper closed to little or to much.";
+								return true;
+							}
+						} else {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning failed");
+							ros::waitForShutdown();
+							//return false;
+							res.success = false;
+							res.message = "Planning failed";
 							return true;
 						}
 					} else {
-						ROS_INFO_NAMED(LOGNAME, "Planning failed");
-						ros::waitForShutdown();
+						ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+						//ros::waitForShutdown();
 						//return false;
 						res.success = false;
-						res.message = "Planning failed";
+						res.message = "Gripper Execution failed";
 						return true;
 					}
 				} else {
-					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+					ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution failed");
 					//ros::waitForShutdown();
 					//return false;
 					res.success = false;
-					res.message = "Gripper Execution failed";
+					res.message = "Execution failed";
 					return true;
 				}
 			} else {
-				ROS_INFO_NAMED(LOGNAME, "Execution failed");
+				ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
 				//ros::waitForShutdown();
 				//return false;
 				res.success = false;
-				res.message = "Execution failed";
+				res.message = "Gripper Execution failed";
 				return true;
 			}
 		} else {
@@ -654,7 +665,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 			return true;
 		}
 	} else {
-		ROS_INFO_NAMED(LOGNAME, "Planning failed");
+		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Planning or Gripper Execution failed");
 		//ros::waitForShutdown();
 		//return false;
 		res.success = false;
@@ -665,6 +676,9 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	t_id += 1;
 	if (t_id > 4) {
 		t_id = 1;
+	}
+	if (t_id == 2) {
+		t_id = 3;
 	}
 	if (!(std::get<0>(picked_objects) == "")) {
 		ROS_ERROR_STREAM_NAMED(LOGNAME, "World model already contains picked object");
@@ -729,34 +743,50 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Planning succeded");
 		if (pnh.param("execute", false)) {
 			if (open_gripper()) {
-				pick_place_task.execute();
-				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
-				if (close_gripper()) {
-					moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
-					if (!lift_task.init({object_name, {object_name}}, "L", true)) {
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
-						res.success = false;
-						res.message = "LiftTask Initialization failed";
-						return true;
-					}
-					if (lift_task.plan()) {
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
-						lift_task.execute();
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
-						if (!grasp_successful()) {
-							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
-							//return false;
-							l_id += 1;
-							if (l_id > 4) {
-								l_id = 1;
-							}
-							setupDemoScene(pnh);
+				if (pick_place_task.execute()) {
+					ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
+					if (close_gripper()) {
+						moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
+						if (!lift_task.init({object_name, {object_name}}, "L", true)) {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
 							res.success = false;
-							res.message = "Grasp failed gripper closed to little or to much.";
+							res.message = "LiftTask Initialization failed";
 							return true;
 						}
+						if (lift_task.plan()) {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
+							lift_task.execute();
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
+							if (!grasp_successful()) {
+								ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
+								//return false;
+								l_id += 1;
+								if (l_id > 4) {
+									l_id = 1;
+								}
+								setupDemoScene(pnh);
+								res.success = false;
+								res.message = "Grasp failed gripper closed to little or to much.";
+								return true;
+							}
+						}
+					} else {
+						ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+						//ros::waitForShutdown();
+						//return false;
+						res.success = false;
+						res.message = "Gripper Execution failed";
+						return true;
 					}
 				} else {
+					ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution failed");
+					//ros::waitForShutdown();
+					//return false;
+					res.success = false;
+					res.message = "Execution failed";
+					return true;
+				} 
+			} else {
 					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
 					//ros::waitForShutdown();
 					//return false;
@@ -764,14 +794,6 @@ bool pickL(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 					res.message = "Gripper Execution failed";
 					return true;
 				}
-			} else {
-				ROS_INFO_NAMED(LOGNAME, "Execution failed");
-				//ros::waitForShutdown();
-				//return false;
-				res.success = false;
-				res.message = "Execution failed";
-				return true;
-			}
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 			//return false;
@@ -883,73 +905,73 @@ bool placeAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Respons
 		ROS_INFO_NAMED(LOGNAME, "PlaceTask Planning succeded");
 		if (pnh.param("execute", false)) {
 			//if (open_gripper()) {
-			place_task.execute();
-			ROS_INFO_NAMED(LOGNAME, "PlaceTask Execution complete");
-			if (open_gripper()) {
-				ROS_INFO_NAMED(LOGNAME, "opened Gripper");
+			if (place_task.execute()) {
+				ROS_INFO_NAMED(LOGNAME, "PlaceTask Execution complete");
+				if (open_gripper()) {
+					ROS_INFO_NAMED(LOGNAME, "opened Gripper");
 
-				std::vector<std::string> picked_object_ids;
-				std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = planning_scene_interface.getAttachedObjects();
-				ROS_INFO_STREAM_NAMED(LOGNAME, "got all known attached objects: " << objects.size());
-				for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
-					printAttachedObject(object);
-					picked_object_ids.push_back(object.first);
-				}
-
-				// res.success = true;
-				// res.message = "LiftTask Initialization preemted";
-				// return true;
-				moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
-				if (!lift_task.init(picked_objects, "T_assembled", false)) {
-					ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
-					res.success = false;
-					res.message = "LiftTask Initialization failed";
-					return true;
-				}
-				if (lift_task.plan()) {
-					ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
-					// ros::waitForShutdown();
-					lift_task.execute();
-					ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
-
-					std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface.getObjects(picked_object_ids);
+					std::vector<std::string> picked_object_ids;
+					std::map<std::string, moveit_msgs::AttachedCollisionObject> objects = planning_scene_interface.getAttachedObjects();
 					ROS_INFO_STREAM_NAMED(LOGNAME, "got all known attached objects: " << objects.size());
-					for (std::pair<std::string, moveit_msgs::CollisionObject> object : objects) {
-						printObject(object);
+					for (std::pair<std::string, moveit_msgs::AttachedCollisionObject> object : objects) {
+						printAttachedObject(object);
+						picked_object_ids.push_back(object.first);
 					}
-					// ----------------
-					// if (!grasp_successful()) {
-					// 	ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
-					// 	//return false;
-					// 	t_assembled == 1 ? 2 : 1;
-					// 	res.success = false;
-					// 	res.message = "Grasp failed gripper closed to little or to much.";
-					// 	return true;
-					// }
+
+					// res.success = true;
+					// res.message = "LiftTask Initialization preemted";
+					// return true;
+					moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
+					if (!lift_task.init(picked_objects, "T_assembled", false)) {
+						ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
+						res.success = false;
+						res.message = "LiftTask Initialization failed";
+						return true;
+					}
+					if (lift_task.plan()) {
+						ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
+						// ros::waitForShutdown();
+						lift_task.execute();
+						ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
+
+						std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface.getObjects(picked_object_ids);
+						ROS_INFO_STREAM_NAMED(LOGNAME, "got all known attached objects: " << objects.size());
+						for (std::pair<std::string, moveit_msgs::CollisionObject> object : objects) {
+							printObject(object);
+						}
+						// ----------------
+						// if (!grasp_successful()) {
+						// 	ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
+						// 	//return false;
+						// 	t_assembled == 1 ? 2 : 1;
+						// 	res.success = false;
+						// 	res.message = "Grasp failed gripper closed to little or to much.";
+						// 	return true;
+						// }
+					} else {
+						ROS_INFO_NAMED(LOGNAME, "LiftTask Planning failed");
+						ros::waitForShutdown();
+						//return false;
+						res.success = false;
+						res.message = "Planning failed";
+						return true;
+					}
 				} else {
-					ROS_INFO_NAMED(LOGNAME, "Planning failed");
-					ros::waitForShutdown();
+					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+					//ros::waitForShutdown();
 					//return false;
 					res.success = false;
-					res.message = "Planning failed";
+					res.message = "Gripper Execution failed";
 					return true;
 				}
 			} else {
-				ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+				ROS_INFO_NAMED(LOGNAME, "PlaceTask Execution failed");
 				//ros::waitForShutdown();
 				//return false;
 				res.success = false;
-				res.message = "Gripper Execution failed";
+				res.message = "Execution failed";
 				return true;
 			}
-			// } else {
-			// 	ROS_INFO_NAMED(LOGNAME, "Execution failed");
-			// 	//ros::waitForShutdown();
-			// 	//return false;
-			// 	res.success = false;
-			// 	res.message = "Execution failed";
-			// 	return true;
-			// }
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 			//return false;
@@ -1070,50 +1092,58 @@ bool pickAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response
 		ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Planning succeded");
 		if (pnh.param("execute", false)) {
 			if (open_gripper()) {
-				pick_place_task.execute();
-				ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
-				if (close_gripper()) {
-					moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
-					if (!lift_task.init({object_name, {pick_objects[object_name]}}, "Tgroup", true)) {
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
-						res.success = false;
-						res.message = "LiftTask Initialization failed";
-						return true;
-					}
-					if (lift_task.plan()) {
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
-						lift_task.execute();
-						ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
-						if (!grasp_successful()) {
-							ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
-							//return false;
-							t_assembled_pick = t_assembled_pick == 1 ? 2 : 1;
+				if (pick_place_task.execute()) {
+					ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution complete");
+					if (close_gripper()) {
+						moveit_task_constructor_demo::LiftTask lift_task("lift_task", pnh);
+						if (!lift_task.init({object_name, {pick_objects[object_name]}}, "Tgroup", true)) {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Initialization failed");
 							res.success = false;
-							res.message = "Grasp failed gripper closed to little or to much.";
+							res.message = "LiftTask Initialization failed";
+							return true;
+						}
+						if (lift_task.plan()) {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning succeded");
+							lift_task.execute();
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Execution complete");
+							if (!grasp_successful()) {
+								ROS_INFO_NAMED(LOGNAME, "Grasp failed gripper closed to little or to much.");
+								//return false;
+								t_assembled_pick = t_assembled_pick == 1 ? 2 : 1;
+								res.success = false;
+								res.message = "Grasp failed gripper closed to little or to much.";
+								return true;
+							}
+						} else {
+							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning failed");
+							ros::waitForShutdown();
+							//return false;
+							res.success = false;
+							res.message = "Planning failed";
 							return true;
 						}
 					} else {
-						ROS_INFO_NAMED(LOGNAME, "Planning failed");
-						ros::waitForShutdown();
+						ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+						//ros::waitForShutdown();
 						//return false;
 						res.success = false;
-						res.message = "Planning failed";
+						res.message = "Gripper Execution failed";
 						return true;
 					}
 				} else {
-					ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
+					ROS_INFO_NAMED(LOGNAME, "PickPlaceTask Execution failed");
 					//ros::waitForShutdown();
 					//return false;
 					res.success = false;
-					res.message = "Gripper Execution failed";
+					res.message = "Execution failed";
 					return true;
 				}
 			} else {
-				ROS_INFO_NAMED(LOGNAME, "Execution failed");
+				ROS_INFO_NAMED(LOGNAME, "Gripper Execution failed");
 				//ros::waitForShutdown();
 				//return false;
 				res.success = false;
-				res.message = "Execution failed";
+				res.message = "Gripper Execution failed";
 				return true;
 			}
 		} else {
@@ -1155,9 +1185,17 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
 		if (pnh.param("execute", false)) {
 			//getchar();
-			hold_task.execute();
-			ROS_INFO_NAMED(LOGNAME, "Execution complete");
-			spawnPipe(pnh, "assembly_object");
+			if (hold_task.execute()) {
+				ROS_INFO_NAMED(LOGNAME, "Execution complete");
+				spawnPipe(pnh, "assembly_object");
+			} else {
+				ROS_INFO_NAMED(LOGNAME, "HoldTask Execution failed");
+				//ros::waitForShutdown();
+				//return false;
+				res.success = false;
+				res.message = "Execution failed";
+				return true;
+			}
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}
@@ -1190,9 +1228,17 @@ bool hold1(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
 		if (pnh.param("execute", false)) {
 			//getchar();
-			hold_task.execute();
-			ROS_INFO_NAMED(LOGNAME, "Execution complete");
-			spawnPipe(pnh, "assembly_object1");
+			if (hold_task.execute()) {
+				ROS_INFO_NAMED(LOGNAME, "Execution complete");
+				spawnPipe(pnh, "assembly_object1");
+			} else {
+				ROS_INFO_NAMED(LOGNAME, "HoldTask Execution failed");
+				//ros::waitForShutdown();
+				//return false;
+				res.success = false;
+				res.message = "Execution failed";
+				return true;
+			}
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}
@@ -1225,9 +1271,17 @@ bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
 		if (pnh.param("execute", false)) {
 			//getchar();
-			hold_task.execute();
-			ROS_INFO_NAMED(LOGNAME, "Execution complete");
-			spawnPipe(pnh, "assembly_object2");
+			if (hold_task.execute()) {
+				ROS_INFO_NAMED(LOGNAME, "Execution complete");
+				spawnPipe(pnh, "assembly_object2");
+			} else {
+				ROS_INFO_NAMED(LOGNAME, "HoldTask Execution failed");
+				//ros::waitForShutdown();
+				//return false;
+				res.success = false;
+				res.message = "Execution failed";
+				return true;
+			}
 		} else {
 			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}
