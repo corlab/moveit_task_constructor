@@ -627,7 +627,7 @@ bool pick(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 							}
 						} else {
 							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning failed");
-							ros::waitForShutdown();
+							//ros::waitForShutdown();
 							//return false;
 							res.success = false;
 							res.message = "Planning failed";
@@ -950,7 +950,7 @@ bool placeAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Respons
 						// }
 					} else {
 						ROS_INFO_NAMED(LOGNAME, "LiftTask Planning failed");
-						ros::waitForShutdown();
+						//ros::waitForShutdown();
 						//return false;
 						res.success = false;
 						res.message = "Planning failed";
@@ -981,7 +981,7 @@ bool placeAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Respons
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
+		//ros::waitForShutdown();
 		//return false;
 		res.success = false;
 		res.message = "Planning failed";
@@ -1116,7 +1116,7 @@ bool pickAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response
 							}
 						} else {
 							ROS_INFO_NAMED(LOGNAME, "LiftTask Planning failed");
-							ros::waitForShutdown();
+							//ros::waitForShutdown();
 							//return false;
 							res.success = false;
 							res.message = "Planning failed";
@@ -1155,7 +1155,7 @@ bool pickAssembledT(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
+		//ros::waitForShutdown();
 		//return false;
 		res.success = false;
 		res.message = "Planning failed";
@@ -1201,7 +1201,7 @@ bool hold(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
+		//ros::waitForShutdown();
 		res.success = false;
 		res.message = "not holding.";
 		return true;	
@@ -1244,7 +1244,7 @@ bool hold1(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
+		//ros::waitForShutdown();
 		res.success = false;
 		res.message = "not holding";
 		return true;
@@ -1287,7 +1287,7 @@ bool hold2(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 		}
 	} else {
 		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-		ros::waitForShutdown();
+		//ros::waitForShutdown();
 		res.success = false;
 		res.message = "not holding.";
 		return true;
