@@ -506,7 +506,7 @@ bool open_gripper() {
 bool resetWorld(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
 	ros::NodeHandle nh, pnh("~");
 	setupDemoScene(pnh);
-	res.success = false;
+	res.success = true;
 	res.message = "Groundhog Day";
 	return true;
 }
