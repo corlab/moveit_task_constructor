@@ -7,10 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_task_constructor_core
 	moveit_ros_planning_interface
 	rosparam_shortcuts
-	std_srvs
-	franka_gripper
-	sensor_msgs
-	humation_messages
 )
 
 moveit_build_options()
@@ -20,23 +16,11 @@ catkin_package(
 )
 
 add_library(${PROJECT_NAME}_pick_place_task src/pick_place_task.cpp)
-add_library(${PROJECT_NAME}_move_home_task src/move_home_task.cpp)
-add_library(${PROJECT_NAME}_lift_task src/lift_task.cpp)
-add_library(${PROJECT_NAME}_hold_task src/hold_task.cpp)
-add_library(${PROJECT_NAME}_place_task src/place_task.cpp)
-target_link_libraries(${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_lift_task ${PROJECT_NAME}_hold_task ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_pick_place_task ${catkin_LIBRARIES})
 target_include_directories(${PROJECT_NAME}_pick_place_task PUBLIC include)
-target_include_directories(${PROJECT_NAME}_move_home_task PUBLIC include)
-target_include_directories(${PROJECT_NAME}_lift_task PUBLIC include)
-target_include_directories(${PROJECT_NAME}_hold_task PUBLIC include)
-target_include_directories(${PROJECT_NAME}_place_task PUBLIC include)
 target_include_directories(${PROJECT_NAME}_pick_place_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME}_place_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME}_move_home_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME}_lift_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME}_hold_task SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-add_dependencies(${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_lift_task ${PROJECT_NAME}_hold_task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-install(TARGETS ${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_lift_task ${PROJECT_NAME}_hold_task
+add_dependencies(${PROJECT_NAME}_pick_place_task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+install(TARGETS ${PROJECT_NAME}_pick_place_task
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -63,7 +47,7 @@ demo(ik_clearance_cost)
 demo(fallbacks_move_to)
 
 demo(pick_place_demo)
-target_link_libraries(${PROJECT_NAME}_pick_place_demo ${PROJECT_NAME}_pick_place_task ${PROJECT_NAME}_place_task ${PROJECT_NAME}_move_home_task ${PROJECT_NAME}_lift_task ${PROJECT_NAME}_hold_task)
+target_link_libraries(${PROJECT_NAME}_pick_place_demo ${PROJECT_NAME}_pick_place_task)
 
 install(DIRECTORY launch config
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

@@ -64,8 +64,7 @@ namespace moveit_task_constructor_demo {
 using namespace moveit::task_constructor;
 
 // prepare a demo environment from ROS parameters under pnh
-// void setupDemoScene(ros::NodeHandle& pnh);
-// void spawnPipe(ros::NodeHandle& pnh, const std::string& name);
+void setupDemoScene(ros::NodeHandle& pnh);
 
 class PickPlaceTask
 {
@@ -73,7 +72,7 @@ public:
 	PickPlaceTask(const std::string& task_name, const ros::NodeHandle& pnh);
 	~PickPlaceTask() = default;
 
-	bool init(std::tuple <std::string, std::vector<std::string>> picked_objects);
+	bool init();
 
 	bool plan();
 
@@ -99,30 +98,9 @@ private:
 	std::vector<std::string> support_surfaces_;
 	std::string object_reference_frame_;
 	std::string surface_link_;
-	std::string objectT1_name_;
-	std::string objectT2_name_;
-	std::string objectT3_name_;
-	std::string objectT4_name_;
-	std::string objectL1_name_;
-	std::string objectL2_name_;
-	std::string objectL3_name_;
-	std::string objectL4_name_;
-	std::string objectI_name_;
-	std::string objectT1_file_;
-	std::string objectT2_file_;
-	std::string objectT3_file_;
-	std::string objectT4_file_;
-	std::string objectL1_file_;
-	std::string objectL2_file_;
-	std::string objectL3_file_;
-	std::string objectL4_file_;
-	std::string objectI_file_;
-	std::string assembly_object_name_;
+	std::string object_name_;
 	std::string world_frame_;
-	std::vector<double> objectT_dimensions_;
-	//std::vector<double> objectL_dimensions_;
-	//std::vector<double> objectI_dimensions_;
-	std::vector<double> assembly_object_dimensions_;
+	std::vector<double> object_dimensions_;
 
 	// Predefined pose targets
 	std::string hand_open_pose_;
@@ -131,7 +109,6 @@ private:
 
 	// Pick metrics
 	Eigen::Isometry3d grasp_frame_transform_;
-	Eigen::Isometry3d assemble_frame_transform_;
 	double approach_object_min_dist_;
 	double approach_object_max_dist_;
 	double lift_object_min_dist_;
@@ -139,7 +116,6 @@ private:
 
 	// Place metrics
 	geometry_msgs::Pose place_pose_;
-	geometry_msgs::Pose assembly_pose_;
 	double place_surface_offset_;
 };
 }  // namespace moveit_task_constructor_demo
