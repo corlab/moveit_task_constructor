@@ -424,9 +424,8 @@ void ContainerBase::init(const moveit::core::RobotModelConstPtr& robot_model) {
 	Stage::init(robot_model);
 
 	// we need to have some children to do the actual work
-	if (children.empty()) {
+	if (children.empty())
 		throw InitStageException(*this, "no children");
-	}
 
 	// recursively init all children and accumulate errors
 	InitStageException errors;
@@ -596,13 +595,11 @@ void SerialContainerPrivate::validateInterface(const StagePrivate& child, Interf
 // called by parent asking for pruning of this' interface
 void SerialContainerPrivate::resolveInterface(InterfaceFlags expected) {
 	// we need to have some children to do the actual work
-	if (children().empty()) {
+	if (children().empty())
 		throw InitStageException(*me(), "no children");
-	}
 
-	if (!(expected & START_IF_MASK)) {
+	if (!(expected & START_IF_MASK))
 		throw InitStageException(*me(), "unknown start interface");
-	}
 
 	Stage& first = *children().front();
 	Stage& last = *children().back();
@@ -680,16 +677,14 @@ void SerialContainerPrivate::validateConnectivity() const {
 		++next;
 
 		// start pull interface fed?
-		// first child has not a previous one
-		if (cur != children().begin() && (required & READS_START) && !(*prev)->pimpl()->nextStarts()) {
+		if (cur != children().begin() &&  // first child has not a previous one
+		    (required & READS_START) && !(*prev)->pimpl()->nextStarts())
 			throw InitStageException(**cur, "start interface is not fed");
-		}
 
 		// end pull interface fed?
-		// last child has not a next one
-		if (next != end && (required & READS_END) && !(*next)->pimpl()->prevEnds()) {
+		if (next != end &&  // last child has not a next one
+		    (required & READS_END) && !(*next)->pimpl()->prevEnds())
 			throw InitStageException(**cur, "end interface is not fed");
-		}
 	}
 }
 
@@ -713,9 +708,8 @@ ParallelContainerBasePrivate::ParallelContainerBasePrivate(ParallelContainerBase
 
 void ParallelContainerBasePrivate::resolveInterface(InterfaceFlags expected) {
 	// we need to have some children to do the actual work
-	if (children().empty()) {
+	if (children().empty())
 		throw InitStageException(*me(), "no children");
-	}
 
 	InitStageException exceptions;
 

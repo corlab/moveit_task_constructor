@@ -538,9 +538,8 @@ void PropagatingEitherWayPrivate::initInterface(PropagatingEitherWay::Direction 
 }
 
 void PropagatingEitherWayPrivate::resolveInterface(InterfaceFlags expected) {
-	if (expected == UNKNOWN) {
+	if (expected == UNKNOWN)
 		throw InitStageException(*me(), "cannot initialize to unknown interface");
-	}
 
 	auto dir = PropagatingEitherWay::AUTO;
 	if ((expected & START_IF_MASK) == READS_START || (expected & END_IF_MASK) == WRITES_NEXT_START)
@@ -723,9 +722,8 @@ void MonitoringGenerator::init(const moveit::core::RobotModelConstPtr& robot_mod
 	Generator::init(robot_model);
 
 	auto impl = pimpl();
-	if (!impl->monitored_) {
+	if (!impl->monitored_)
 		throw InitStageException(*this, "no monitored stage defined");
-	}
 	if (!impl->registered_) {  // register only once
 		impl->cb_ = impl->monitored_->addSolutionCallback(
 		    std::bind(&MonitoringGeneratorPrivate::solutionCB, impl, std::placeholders::_1));

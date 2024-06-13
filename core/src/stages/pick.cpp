@@ -73,9 +73,8 @@ void PickPlaceBase::init(const moveit::core::RobotModelConstPtr& robot_model) {
 	// init internal properties
 	const std::string& eef = p->get<std::string>("eef");
 	const moveit::core::JointModelGroup* jmg = robot_model->getEndEffector(eef);
-	if (!jmg) {
+	if (!jmg)
 		throw InitStageException(*this, "unknown end effector: " + eef);
-	}
 
 	p->set<std::string>("eef_group", jmg->getName());
 	p->set<std::string>("eef_parent_group", jmg->getEndEffectorParentGroup().first);
