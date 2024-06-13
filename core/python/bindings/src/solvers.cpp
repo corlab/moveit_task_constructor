@@ -36,9 +36,12 @@
 #include <moveit/task_constructor/solvers/cartesian_path.h>
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit/task_constructor/solvers/joint_interpolation.h>
+#include <moveit/task_constructor/solvers/multi_planner.h>
 #include <moveit_msgs/WorkspaceParameters.h>
+#include "utils.h"
 
 namespace py = pybind11;
+using namespace py::literals;
 using namespace moveit::task_constructor;
 using namespace moveit::task_constructor::solvers;
 
@@ -46,6 +49,7 @@ PYBIND11_SMART_HOLDER_TYPE_CASTERS(PlannerInterface)
 PYBIND11_SMART_HOLDER_TYPE_CASTERS(PipelinePlanner)
 PYBIND11_SMART_HOLDER_TYPE_CASTERS(JointInterpolationPlanner)
 PYBIND11_SMART_HOLDER_TYPE_CASTERS(CartesianPath)
+PYBIND11_SMART_HOLDER_TYPE_CASTERS(MultiPlanner)
 
 namespace moveit {
 namespace python {
@@ -79,7 +83,7 @@ void export_solvers(py::module& m) {
 	    .property<double>("goal_orientation_tolerance", "float: Tolerance for reaching orientation goals")
 	    .property<bool>("display_motion_plans", "bool: Publish generated solutions via a topic")
 	    .property<bool>("publish_planning_requests", "bool: Publish motion planning requests via a topic")
-	    .def(py::init<>());
+	    .def(py::init<const std::string&>(), "pipeline"_a = std::string("ompl"));
 
 	properties::class_<JointInterpolationPlanner, PlannerInterface>(
 	    m, "JointInterpolationPlanner",
@@ -114,6 +118,27 @@ void export_solvers(py::module& m) {
 	        "float: Limit joint displacement between consecutive waypoints, thus preventing jumps in joint space. "
 	        "This values specifies the fraction of mean acceptable joint motion per step.")
 	    .property<double>("min_fraction", "float: Fraction of overall distance required to succeed.")
+	    .def(py::init<>());
+
+	properties::class_<MultiPlanner, PlannerInterface>(m, "MultiPlanner", R"(
+			A meta planner that runs multiple alternative planners in sequence and returns the first found solution. ::
+
+				from moveit.task_constructor import core
+
+				# Instantiate MultiPlanner
+				multiPlanner = core.MultiPlanner()
+		)")
+	    .def("__len__", &MultiPlanner::size)
+	    .def("__getitem__", &get_item<MultiPlanner>)
+	    .def(
+	        "add",
+	        [](MultiPlanner& self, const py::args& args) {
+		        for (auto it = args.begin(), end = args.end(); it != end; ++it)
+			        self.push_back(it->cast<PlannerInterfacePtr>());
+	        },
+	        "Insert one or more planners")
+	    .def(
+	        "clear", [](MultiPlanner& self) { self.clear(); }, "Remove all planners")
 	    .def(py::init<>());
 }
 }  // namespace python
